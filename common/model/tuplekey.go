@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/TIBCOSoftware/flogo-lib/core/data"
 	"fmt"
+	"github.com/TIBCOSoftware/flogo-lib/core/data"
 	"reflect"
 )
 

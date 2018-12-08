@@ -81,7 +81,6 @@ func (cr *conflictResImpl) resolveConflict(ctx context.Context) {
 		front = cr.agendaList.Front()
 	}
 
-
 	reteCtxV := getReteCtx(ctx)
 	reteCtxV.normalize()
 	//reteCtxV.printRtcChangeList()
