@@ -684,8 +684,7 @@ func (nw *reteNetworkImpl) removeJoinTableRowRefs(hdl types.ReteHandle, changedP
 	hdlTblIter := nw.jtRefsService.GetIterator(hdl)
 
 	for hdlTblIter.HasNext() {
-		jtName, _ := hdlTblIter.Next()
-		joinTable := nw.jtService.GetJoinTable(jtName)
+		joinTable := hdlTblIter.Next()
 		if joinTable == nil {
 			continue
 		}
@@ -710,14 +709,14 @@ func (nw *reteNetworkImpl) removeJoinTableRowRefs(hdl types.ReteHandle, changedP
 			continue
 		}
 
-		rowIter := nw.jtRefsService.GetRowIterator(hdl, jtName)
+		rowIter := nw.jtRefsService.GetRowIterator(hdl, joinTable.GetName())
 
 		////Remove rows from corresponding join tables
 		for rowIter.HasNext() {
 			row := rowIter.Next()
 			for _, otherHdl := range row.GetHandles() {
 				if otherHdl.GetTupleKey().String() != hdl.GetTupleKey().String() {
-					nw.jtRefsService.RemoveRowEntry(otherHdl, jtName, row.GetID())
+					nw.jtRefsService.RemoveRowEntry(otherHdl, joinTable.GetName(), row.GetID())
 				}
 			}
 
