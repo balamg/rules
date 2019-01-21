@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/rete/internal/types"
+	"context"
 )
 
 type joinTableImpl struct {
@@ -28,19 +29,19 @@ func (jt *joinTableImpl) initJoinTableImpl(nw types.Network, rule model.Rule, id
 	jt.name = name
 }
 
-func (jt *joinTableImpl) AddRow(handles []types.ReteHandle) types.JoinTableRow {
+func (jt *joinTableImpl) AddRow(ctx context.Context, handles []types.ReteHandle) types.JoinTableRow {
 
 	row := newJoinTableRow(handles, jt.Nw)
 
 	jt.table[row.GetID()] = row
 	for i := 0; i < len(row.GetHandles()); i++ {
 		handle := row.GetHandles()[i]
-		jt.Nw.GetJtRefService().AddEntry(handle, jt.name, row.GetID())
+		jt.Nw.GetJtRefService().AddEntry(ctx, handle, jt.name, row.GetID())
 	}
 	return row
 }
 
-func (jt *joinTableImpl) RemoveRow(rowID int) types.JoinTableRow {
+func (jt *joinTableImpl) RemoveRow(ctx context.Context, rowID int) types.JoinTableRow {
 	row, found := jt.table[rowID]
 	if found {
 		delete(jt.table, rowID)
@@ -69,17 +70,17 @@ func (jt *joinTableImpl) GetName() string {
 	return jt.name
 }
 
-func (jt *joinTableImpl) RemoveAllRows() {
+func (jt *joinTableImpl) RemoveAllRows(ctx context.Context) {
 	rowIter := jt.GetRowIterator()
 	for rowIter.HasNext() {
 		row := rowIter.Next()
 		//first, from jTable, remove row
-		jt.RemoveRow(row.GetID())
+		jt.RemoveRow(ctx, row.GetID())
 		for _, hdl := range row.GetHandles() {
-			jt.Nw.GetJtRefService().RemoveTableEntry(hdl, jt.GetName())
+			jt.Nw.GetJtRefService().RemoveTableEntry(ctx, hdl, jt.GetName())
 		}
 		//Delete the rowRef itself
-		rowIter.Remove()
+		rowIter.Remove(ctx)
 	}
 }
 
@@ -112,6 +113,6 @@ func (ri *rowIteratorImpl) Next() types.JoinTableRow {
 	return val
 }
 
-func (ri *rowIteratorImpl) Remove() {
+func (ri *rowIteratorImpl) Remove(ctx context.Context) {
 	delete(ri.table, ri.currKey)
 }

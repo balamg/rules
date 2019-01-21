@@ -61,6 +61,30 @@ func (rh *RedisHandle) HSetAll(key string, kvs map[string]interface{}) error {
 	return error
 }
 
+
+func (rh *RedisHandle) Multi() redis.Conn {
+	c := rh.getPool().Get()
+	c.Send("MULTI")
+	return c
+}
+func (rh *RedisHandle) Exec(c redis.Conn) error {
+	_, error := c.Do("EXEC")
+	return error
+}
+func (rh *RedisHandle) Discard(c redis.Conn) error {
+	_, error := c.Do("DISCARD")
+	return error
+}
+
+func (rh *RedisHandle) HSetAllInTx(c redis.Conn, key string, kvs map[string]interface{}) error {
+	var args = []interface{}{key}
+	for f, v := range kvs {
+		args = append(args, f, v)
+	}
+	error := c.Send("HMSET", args...)
+	return error
+}
+
 func (rh *RedisHandle) HGetAll(key string) map[string]interface{} {
 	hgetall := make(map[string]interface{})
 	c := rh.getPool().Get()

@@ -3,6 +3,7 @@ package redis
 import (
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/rete/internal/types"
+	"context"
 )
 
 //Holds a tuple reference and related state
@@ -40,14 +41,14 @@ func (hdl *reteHandleImpl) GetTuple() model.Tuple {
 func (hdl *reteHandleImpl) GetTupleKey() model.TupleKey {
 	return hdl.tupleKey
 }
-
-func (hdl *reteHandleImpl) AddJoinTableRowRef(joinTableRowVar types.JoinTableRow, joinTableVar types.JoinTable) {
-	hdl.Nw.GetJtRefService().AddEntry(hdl, joinTableVar.GetName(), joinTableRowVar.GetID())
-}
+//
+//func (hdl *reteHandleImpl) AddJoinTableRowRef(joinTableRowVar types.JoinTableRow, joinTableVar types.JoinTable) {
+//	hdl.Nw.GetJtRefService().AddEntry(hdl, joinTableVar.GetName(), joinTableRowVar.GetID())
+//}
 
 //Used when a rule is deleted. See Network.RemoveRule
-func (hdl *reteHandleImpl) RemoveJoinTable(jtName string) {
-	hdl.Nw.GetJtRefService().RemoveEntry(hdl, jtName)
+func (hdl *reteHandleImpl) RemoveJoinTable(ctx context.Context, jtName string) {
+	hdl.Nw.GetJtRefService().RemoveEntry(ctx, hdl, jtName)
 }
 
 func (hdl *reteHandleImpl) GetRefTableIterator() types.JointableIterator {

@@ -4,6 +4,7 @@ import (
 	"github.com/project-flogo/rules/redisutils"
 	"github.com/project-flogo/rules/rete/internal/types"
 	"strconv"
+	"context"
 )
 
 type jtRefsServiceImpl struct {
@@ -24,7 +25,7 @@ func (h *jtRefsServiceImpl) Init() {
 
 }
 
-func (h *jtRefsServiceImpl) AddEntry(handle types.ReteHandle, jtName string, rowID int) {
+func (h *jtRefsServiceImpl) AddEntry(ctx context.Context, handle types.ReteHandle, jtName string, rowID int) {
 
 	//format: prefix:rtbls:tkey ==> {jtname=jtname, ...}
 	//format: prefix:rrows:tkey:jtname ==> {rowid=rowid, ...}
@@ -42,7 +43,7 @@ func (h *jtRefsServiceImpl) AddEntry(handle types.ReteHandle, jtName string, row
 	hdl.HSetAll(rkey, rowMap)
 }
 
-func (h *jtRefsServiceImpl) RemoveEntry(handle types.ReteHandle, jtName string) {
+func (h *jtRefsServiceImpl) RemoveEntry(ctx context.Context, handle types.ReteHandle, jtName string) {
 	key := h.Nw.GetPrefix() + ":rtbls:" + handle.GetTupleKey().String()
 	hdl := redisutils.GetRedisHdl()
 	hdl.HDel(key, jtName)
@@ -52,7 +53,7 @@ func (h *jtRefsServiceImpl) RemoveEntry(handle types.ReteHandle, jtName string) 
 
 }
 
-func (h *jtRefsServiceImpl) RemoveRowEntry(handle types.ReteHandle, jtName string, rowID int) {
+func (h *jtRefsServiceImpl) RemoveRowEntry(ctx context.Context, handle types.ReteHandle, jtName string, rowID int) {
 	rowKey := h.Nw.GetPrefix() + ":rrows:" + handle.GetTupleKey().String() + ":" + jtName
 	hdl := redisutils.GetRedisHdl()
 	rowIdStr := strconv.Itoa(rowID)
@@ -62,7 +63,7 @@ func (h *jtRefsServiceImpl) RemoveRowEntry(handle types.ReteHandle, jtName strin
 	//hdl.HDel(hkey, jtName)
 }
 
-func (h *jtRefsServiceImpl) RemoveTableEntry(handle types.ReteHandle, jtName string) {
+func (h *jtRefsServiceImpl) RemoveTableEntry(ctx context.Context, handle types.ReteHandle, jtName string) {
 
 	//Delete all row entry refs for this table
 	rowKey := h.Nw.GetPrefix() + ":rrows:" + handle.GetTupleKey().String() + ":" + jtName
@@ -98,7 +99,7 @@ func (ri *hdlRefsTableIteratorImpl) Next() types.JoinTable {
 	jT := ri.nw.GetJtService().GetJoinTable(jtName)
 	return jT
 }
-func (ri *hdlRefsTableIteratorImpl) Remove() {
+func (ri *hdlRefsTableIteratorImpl) Remove(ctx context.Context) {
 	ri.iter.Remove()
 }
 
@@ -121,7 +122,7 @@ func (r *hdlRefsRowIteratorImpl) Next() types.JoinTableRow {
 	return row
 }
 
-func (r *hdlRefsRowIteratorImpl) Remove() {
+func (r *hdlRefsRowIteratorImpl) Remove(ctx context.Context) {
 	r.iter.Remove()
 }
 

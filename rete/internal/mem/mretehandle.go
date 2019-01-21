@@ -38,11 +38,11 @@ func (hdl *reteHandleImpl) GetTupleKey() model.TupleKey {
 	return hdl.tupleKey
 }
 
-func (hdl *reteHandleImpl) AddJoinTableRowRef(joinTableRowVar types.JoinTableRow, joinTableVar types.JoinTable) {
-	hdl.Nw.GetJtRefService().AddEntry(hdl, joinTableVar.GetName(), joinTableRowVar.GetID())
-}
+//func (hdl *reteHandleImpl) AddJoinTableRowRef(joinTableRowVar types.JoinTableRow, joinTableVar types.JoinTable) {
+//	hdl.Nw.GetJtRefService().AddEntry(hdl, joinTableVar.GetName(), joinTableRowVar.GetID())
+//}
 
-//Used when a rule is deleted. See Network.RemoveRule
-func (hdl *reteHandleImpl) RemoveJoinTable(joinTableID string) {
-	hdl.Nw.GetJtRefService().RemoveEntry(hdl, joinTableID)
-}
+////Used when a rule is deleted. See Network.RemoveRule
+//func (hdl *reteHandleImpl) RemoveJoinTable(joinTableID string) {
+//	hdl.Nw.GetJtRefService().RemoveEntry(hdl, joinTableID)
+//}

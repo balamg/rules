@@ -3,6 +3,7 @@ package mem
 import (
 	"container/list"
 	"github.com/project-flogo/rules/rete/internal/types"
+	"context"
 )
 
 type jtRefsServiceImpl struct {
@@ -22,7 +23,7 @@ func (h *jtRefsServiceImpl) Init() {
 
 }
 
-func (h *jtRefsServiceImpl) AddEntry(handle types.ReteHandle, jtName string, rowID int) {
+func (h *jtRefsServiceImpl) AddEntry(ctx context.Context, handle types.ReteHandle, jtName string, rowID int) {
 
 	tblMap, found := h.tablesAndRows[handle.GetTupleKey().String()]
 
@@ -39,14 +40,14 @@ func (h *jtRefsServiceImpl) AddEntry(handle types.ReteHandle, jtName string, row
 	rowsForJoinTable[rowID] = rowID
 }
 
-func (h *jtRefsServiceImpl) RemoveEntry(handle types.ReteHandle, jtName string) {
+func (h *jtRefsServiceImpl) RemoveEntry(ctx context.Context, handle types.ReteHandle, jtName string) {
 	tblMap, found := h.tablesAndRows[handle.GetTupleKey().String()]
 	if found {
 		delete(tblMap, jtName)
 	}
 }
 
-func (h *jtRefsServiceImpl) RemoveRowEntry(handle types.ReteHandle, jtName string, rowID int) {
+func (h *jtRefsServiceImpl) RemoveRowEntry(ctx context.Context, handle types.ReteHandle, jtName string, rowID int) {
 	tblMap, found := h.tablesAndRows[handle.GetTupleKey().String()]
 	if found {
 		rowIDs, fnd := tblMap[jtName]
@@ -56,7 +57,7 @@ func (h *jtRefsServiceImpl) RemoveRowEntry(handle types.ReteHandle, jtName strin
 	}
 }
 
-func (h *jtRefsServiceImpl) RemoveTableEntry(handle types.ReteHandle, jtName string) {
+func (h *jtRefsServiceImpl) RemoveTableEntry(ctx context.Context, handle types.ReteHandle, jtName string) {
 	tblMap, found := h.tablesAndRows[handle.GetTupleKey().String()]
 	if found {
 		delete(tblMap, jtName)
@@ -98,7 +99,7 @@ func (ri *hdlRefsTableIterator) Next() types.JoinTable {
 	return jT
 }
 
-func (ri *hdlRefsTableIterator) Remove() {
+func (ri *hdlRefsTableIterator) Remove(ctx context.Context) {
 	delete(ri.tblMap, ri.currJtName)
 }
 
@@ -127,7 +128,7 @@ func (ri *hdlRefsRowIterator) Next() types.JoinTableRow {
 	return jtRow
 }
 
-func (ri *hdlRefsRowIterator) Remove() {
+func (ri *hdlRefsRowIterator) Remove(ctx context.Context) {
 	delete(ri.rowIdMap, ri.currRowId)
 }
 

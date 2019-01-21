@@ -4,6 +4,7 @@ import (
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/redisutils"
 	"github.com/project-flogo/rules/rete/internal/types"
+	"context"
 )
 
 type handleServiceImpl struct {
@@ -23,7 +24,7 @@ func (hc *handleServiceImpl) Init() {
 	hc.prefix = hc.Nw.GetPrefix() + ":h:"
 }
 
-func (hc *handleServiceImpl) RemoveHandle(tuple model.Tuple) types.ReteHandle {
+func (hc *handleServiceImpl) RemoveHandle(ctx context.Context, tuple model.Tuple) types.ReteHandle {
 	rkey := hc.prefix + tuple.GetKey().String()
 	redisutils.GetRedisHdl().Del(rkey)
 	//TODO: Dummy handle
@@ -53,7 +54,7 @@ func (hc *handleServiceImpl) GetHandleByKey(key model.TupleKey) types.ReteHandle
 	}
 }
 
-func (hc *handleServiceImpl) GetOrCreateHandle(nw types.Network, tuple model.Tuple) types.ReteHandle {
+func (hc *handleServiceImpl) GetOrCreateHandle(ctx context.Context, nw types.Network, tuple model.Tuple) types.ReteHandle {
 
 	key := hc.prefix + tuple.GetKey().String()
 

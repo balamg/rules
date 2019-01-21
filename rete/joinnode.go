@@ -42,8 +42,8 @@ func (jn *joinNodeImpl) initjoinNodeImplVar(nw *reteNetworkImpl, rule model.Rule
 	jn.leftIdrs = leftIdrs
 	jn.rightIdrs = rightIdrs
 	jn.conditionVar = conditionVar
-	jn.leftTable = nw.GetJtService().GetOrCreateJoinTable(nw, rule, leftIdrs, "L_"+conditionVar.GetName())
-	jn.rightTable = nw.GetJtService().GetOrCreateJoinTable(nw, rule, rightIdrs, "R_"+conditionVar.GetName())
+	jn.leftTable = nw.GetJtService().GetOrCreateJoinTable(nil, nw, rule, leftIdrs, "L_"+conditionVar.GetName())
+	jn.rightTable = nw.GetJtService().GetOrCreateJoinTable(nil, nw, rule, rightIdrs, "R_"+conditionVar.GetName())
 	jn.setJoinIdentifiers()
 }
 
@@ -168,7 +168,7 @@ func (jn *joinNodeImpl) assertFromRight(ctx context.Context, handles []types.Ret
 	//TODO: other stuff. right now focus on tuple table
 	jn.joinRightObjects(handles, joinedHandles)
 	//tupleTableRow := newJoinTableRow(handles, jn.nw.incrementAndGetId())
-	jn.rightTable.AddRow(handles)
+	jn.rightTable.AddRow(ctx, handles)
 	//TODO: rete listeners etc.
 	rIterator := jn.leftTable.GetRowIterator()
 	for rIterator.HasNext() {
@@ -218,7 +218,7 @@ func (jn *joinNodeImpl) assertFromLeft(ctx context.Context, handles []types.Rete
 	jn.joinLeftObjects(handles, joinedHandles)
 	//TODO: other stuff. right now focus on tuple table
 	//tupleTableRow := newJoinTableRow(handles, jn.nw.incrementAndGetId())
-	jn.leftTable.AddRow(handles)
+	jn.leftTable.AddRow(ctx, handles)
 	//TODO: rete listeners etc.
 	rIterator := jn.rightTable.GetRowIterator()
 	for rIterator.HasNext() {

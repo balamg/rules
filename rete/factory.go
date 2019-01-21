@@ -5,6 +5,7 @@ import (
 	"github.com/project-flogo/rules/rete/internal/mem"
 	"github.com/project-flogo/rules/rete/internal/redis"
 	"github.com/project-flogo/rules/rete/internal/types"
+	"context"
 )
 
 type TypeFactory struct {
@@ -22,7 +23,7 @@ func NewFactory(nw *reteNetworkImpl, config string) *TypeFactory {
 	return &tf
 }
 
-func (f *TypeFactory) getJoinTableRefs() types.JtRefsService {
+func (f *TypeFactory) getJoinTableRefs(ctx context.Context) types.JtRefsService {
 	var jtRefs types.JtRefsService
 	if f.parsedJson == nil {
 		jtRefs = mem.NewJoinTableRefsInHdlImpl(f.nw, f.parsedJson)

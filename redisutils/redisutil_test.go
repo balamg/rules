@@ -207,3 +207,25 @@ func Test_five(t *testing.T) {
 	}
 
 }
+
+func Test_six(t *testing.T) {
+	InitService(nil)
+
+	hdl := GetRedisHdl()
+
+	cx := hdl.Multi()
+
+	b := make (map[string]interface{})
+	b["b"] = "b"
+
+	hdl.HSetAllInTx(cx,"b", b)
+
+	c := make (map[string]interface{})
+	c["c"] = "c"
+
+	hdl.HSetAllInTx(cx,"b", c)
+
+	hdl.Exec(cx)
+
+	fmt.Printf("Done..\n")
+}

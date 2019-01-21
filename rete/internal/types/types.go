@@ -3,6 +3,7 @@ package types
 import (
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/rete/common"
+	"context"
 )
 
 type Network interface {
@@ -20,13 +21,13 @@ type JoinTable interface {
 	GetName() string
 	GetRule() model.Rule
 
-	AddRow(handles []ReteHandle) JoinTableRow
-	RemoveRow(rowID int) JoinTableRow
+	AddRow(ctx context.Context, handles []ReteHandle) JoinTableRow
+	RemoveRow(ctx context.Context, rowID int) JoinTableRow
 	GetRow(rowID int) JoinTableRow
 	GetRowIterator() JointableRowIterator
 
 	GetRowCount() int
-	RemoveAllRows() //used when join table needs to be deleted
+	RemoveAllRows(ctx context.Context) //used when join table needs to be deleted
 }
 
 type JoinTableRow interface {
@@ -43,26 +44,26 @@ type ReteHandle interface {
 
 type JtRefsService interface {
 	NwService
-	AddEntry(handle ReteHandle, jtName string, rowID int)
-	RemoveRowEntry(handle ReteHandle, jtName string, rowID int)
-	RemoveTableEntry(handle ReteHandle, jtName string)
-	RemoveEntry(handle ReteHandle, jtName string)
+	AddEntry(ctx context.Context, handle ReteHandle, jtName string, rowID int)
+	RemoveRowEntry(ctx context.Context, handle ReteHandle, jtName string, rowID int)
+	RemoveTableEntry(ctx context.Context, handle ReteHandle, jtName string)
+	RemoveEntry(ctx context.Context, handle ReteHandle, jtName string)
 	GetTableIterator(handle ReteHandle) JointableIterator
 	GetRowIterator(handle ReteHandle, jtName string) JointableRowIterator
 }
 
 type JtService interface {
 	NwService
-	GetOrCreateJoinTable(nw Network, rule model.Rule, identifiers []model.TupleType, name string) JoinTable
+	GetOrCreateJoinTable(ctx context.Context, nw Network, rule model.Rule, identifiers []model.TupleType, name string) JoinTable
 	GetJoinTable(name string) JoinTable
 }
 
 type HandleService interface {
 	NwService
-	RemoveHandle(tuple model.Tuple) ReteHandle
+	RemoveHandle(ctx context.Context, tuple model.Tuple) ReteHandle
 	GetHandle(tuple model.Tuple) ReteHandle
 	GetHandleByKey(key model.TupleKey) ReteHandle
-	GetOrCreateHandle(nw Network, tuple model.Tuple) ReteHandle
+	GetOrCreateHandle(ctx context.Context, nw Network, tuple model.Tuple) ReteHandle
 }
 
 type IdGen interface {
@@ -74,11 +75,11 @@ type IdGen interface {
 type JointableIterator interface {
 	HasNext() bool
 	Next() JoinTable
-	Remove()
+	Remove(ctx context.Context)
 }
 
 type JointableRowIterator interface {
 	HasNext() bool
 	Next() JoinTableRow
-	Remove()
+	Remove(ctx context.Context)
 }

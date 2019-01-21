@@ -3,6 +3,7 @@ package redis
 import (
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/rete/internal/types"
+	"context"
 )
 
 type jtServiceImpl struct {
@@ -24,7 +25,7 @@ func (jtc *jtServiceImpl) GetJoinTable(name string) types.JoinTable {
 	return jtc.allJoinTables[name]
 }
 
-func (jtc *jtServiceImpl) GetOrCreateJoinTable(nw types.Network, rule model.Rule, identifiers []model.TupleType, name string) types.JoinTable {
+func (jtc *jtServiceImpl) GetOrCreateJoinTable(ctx context.Context, nw types.Network, rule model.Rule, identifiers []model.TupleType, name string) types.JoinTable {
 	jT, found := jtc.allJoinTables[name]
 	if !found {
 		jT = newJoinTableImpl(nw, rule, identifiers, name)

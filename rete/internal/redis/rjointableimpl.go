@@ -5,6 +5,7 @@ import (
 	"github.com/project-flogo/rules/redisutils"
 	"github.com/project-flogo/rules/rete/internal/types"
 	"strconv"
+	"context"
 )
 
 type joinTableImpl struct {
@@ -30,16 +31,16 @@ func (jt *joinTableImpl) initJoinTableImpl(nw types.Network, rule model.Rule, id
 	jt.jtKey = nw.GetPrefix() + ":" + "jt:" + name
 }
 
-func (jt *joinTableImpl) AddRow(handles []types.ReteHandle) types.JoinTableRow {
+func (jt *joinTableImpl) AddRow(ctx context.Context, handles []types.ReteHandle) types.JoinTableRow {
 	row := newJoinTableRow(jt.jtKey, handles, jt.Nw)
 	for i := 0; i < len(row.GetHandles()); i++ {
 		handle := row.GetHandles()[i]
-		jt.Nw.GetJtRefService().AddEntry(handle, jt.name, row.GetID())
+		jt.Nw.GetJtRefService().AddEntry(ctx, handle, jt.name, row.GetID())
 	}
 	return row
 }
 
-func (jt *joinTableImpl) RemoveRow(rowID int) types.JoinTableRow {
+func (jt *joinTableImpl) RemoveRow(ctx context.Context, rowID int) types.JoinTableRow {
 	row := jt.GetRow(rowID)
 	hdl := redisutils.GetRedisHdl()
 	rowId := strconv.Itoa(rowID)
@@ -47,17 +48,17 @@ func (jt *joinTableImpl) RemoveRow(rowID int) types.JoinTableRow {
 	return row
 }
 
-func (jt *joinTableImpl) RemoveAllRows() {
+func (jt *joinTableImpl) RemoveAllRows(ctx context.Context) {
 	rowIter := jt.GetRowIterator()
 	for rowIter.HasNext() {
 		row := rowIter.Next()
 		//first, from jTable, remove row
-		jt.RemoveRow(row.GetID())
+		jt.RemoveRow(ctx, row.GetID())
 		for _, hdl := range row.GetHandles() {
-			jt.Nw.GetJtRefService().RemoveTableEntry(hdl, jt.GetName())
+			jt.Nw.GetJtRefService().RemoveTableEntry(ctx, hdl, jt.GetName())
 		}
 		//Delete the rowRef itself
-		rowIter.Remove()
+		rowIter.Remove(ctx)
 	}
 }
 
@@ -112,6 +113,6 @@ func (ri *rowIteratorImpl) Next() types.JoinTableRow {
 	return ri.curr
 }
 
-func (ri *rowIteratorImpl) Remove() {
+func (ri *rowIteratorImpl) Remove(ctx context.Context) {
 	ri.iter.Remove()
 }
