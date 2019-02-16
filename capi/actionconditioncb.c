@@ -1,29 +1,44 @@
-#include "greeter.h"
+#include "actionconditioncb.h"
 #include <stdio.h>
 
-//fun_ptr is a pointer to a function that takes a string and returns void
-int (*fun_ptr)(const char *name);
+//condition function pointer
+int (*conditionCb)(const char *ruleName, const char *conditionName, const char* tupleJson);
 
+//action function pointer
+int (*actionCb)(const char *ruleName, const char* tupleJson);
 
 int my_fun (const char *name) {
     printf ("Hi there %s\n", name);
     return 0;
 }
+int registerConditionCb (int (*conditionCbf)(const char *ruleName, const char *conditionName, const char* tupleJson)) {
+    conditionCb = conditionCbf;
+    printf ("registered condition callback function....\n");
+    return 0;
+}
 
-int callPyCb(const char *name) {
-    if (fun_ptr != NULL) {
-        fun_ptr (name);
+int registerActionCb (int (*actionCbf)(const char *ruleName, const char* tupleJson)) {
+    actionCb = actionCbf;
+    printf ("registered action callback function....\n");
+    return 0;
+}
+
+int evalCondition(const char *ruleName, const char *conditionName, const char *tupleJson) {
+    if (conditionCb != NULL) {
+        conditionCb (ruleName, conditionName, tupleJson);
     } else {
-        printf ("NULL if fun_ptr\n");
+        printf ("condition function not registered\n");
     }
     return 0;
 }
 
-int registerPyCb (int (*fun_ptrcb)(const char *name)) {
-    fun_ptr = fun_ptrcb;
-    printf ("registered a callback funtion....\n");
+
+int performAction(const char *ruleName, const char *tupleJson) {
+    if (actionCb != NULL) {
+        actionCb (ruleName, tupleJson);
+    } else {
+        printf ("action function not registered\n");
+    }
     return 0;
 }
-
-
 
