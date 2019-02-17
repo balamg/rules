@@ -25,7 +25,7 @@ int registerActionCb (int (*actionCbf)(const char *ruleName, const char* tupleJs
 
 int evalCondition(const char *ruleName, const char *conditionName, const char *tupleJson) {
     if (conditionCb != NULL) {
-        conditionCb (ruleName, conditionName, tupleJson);
+        return conditionCb (ruleName, conditionName, tupleJson);
     } else {
         printf ("condition function not registered\n");
     }
@@ -35,7 +35,7 @@ int evalCondition(const char *ruleName, const char *conditionName, const char *t
 
 int performAction(const char *ruleName, const char *tupleJson) {
     if (actionCb != NULL) {
-        actionCb (ruleName, tupleJson);
+        return actionCb (ruleName, tupleJson);
     } else {
         printf ("action function not registered\n");
     }
