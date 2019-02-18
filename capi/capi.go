@@ -24,46 +24,45 @@ func RegisterTupleDescriptors(tupleDescriptor string) {
 		fmt.Printf("Error [%s]\n", err)
 		return
 	}
-	fmt.Printf("Registered tuple descriptors\n")
+	fmt.Printf("Registered tuple descriptors.\n")
 }
 
 //export CreateRuleSession
-func CreateRuleSession(name string) {
-	_, found := ruleSessions[name]
+func CreateRuleSession(ruleSessionName string) {
+	_, found := ruleSessions[ruleSessionName]
 	if !found {
-		rs, _ := ruleapi.GetOrCreateRuleSession(name)
-		ruleSessions[name] = rs
+		rs, _ := ruleapi.GetOrCreateRuleSession(ruleSessionName)
+		ruleSessions[ruleSessionName] = rs
 	}
+	fmt.Printf("Created rulesession [%s].\n", ruleSessionName)
 }
 
 //export StartRuleSession
 func StartRuleSession (ruleSessionName string) {
 	rs := ruleSessions[ruleSessionName]
 	rs.Start(nil)
+	fmt.Printf("Started rulesession [%s].\n", ruleSessionName)
 }
 
 //export AddRule
 func AddRule(ruleSessionName string, ruleName string, idrJson string) {
 	//fmt.Printf("Adding a rule..[%s][%s][%s]\n",ruleSessionName, ruleName, idrJson)
-	rule := ruleapi.NewRule("n1.name == Bob")
+	rule := ruleapi.NewRule(ruleName)
 	rule.AddCondition("c1", []string{"n1"}, CCondition, nil)
 	rule.SetAction(CAction)
-	rule.SetContext("This is a test of context")
 	rs := ruleSessions[ruleSessionName]
 	rs.AddRule(rule)
-	fmt.Printf("Adding a rule successful.\n")
-
+	fmt.Printf("Rule [%s] added to rulesession [%s].\n", ruleName, ruleSessionName)
 }
 
 //export Assert
 func Assert(ruleSessionName string, tupleJson string) {
 	//Now assert a "n1" tuple
-	fmt.Println("Asserting n1 tuple with name=Bob\n")
+	fmt.Printf("Asserting tuple [%s].\n", tupleJson)
 	t2, _ := model.NewTupleWithKeyValues("n1", "Bob")
 	t2.SetString(nil, "name", "Bob")
 	rs := ruleSessions[ruleSessionName]
 	rs.Assert(nil, t2)
-	//fmt.Println("Asserted n1 tuple with name=Bob\n")
 }
 
 
@@ -76,12 +75,12 @@ func CAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples 
 	//fmt.Printf("CAction complete..\n")
 }
 
-func CCondition(ruleName string, condName string, tuples map[model.TupleType]model.Tuple, ctx model.RuleContext) bool {
+func CCondition(condName string, ruleName string, tuples map[model.TupleType]model.Tuple, ctx model.RuleContext) bool {
 	//tupleJson := "x"
-	//fmt.Printf("CCondition started..[%s][%s][%s]\n", ruleName, condName, tupleJson)
+	//fmt.Printf("CCondition started..[%s][%s][%s]\n", ruleName, condName, "")
 	//var ret bool
 	i := C.evalCondition(C.CString(ruleName), C.CString(condName), C.CString(""))
-	//fmt.Printf("CCondition complete..\n")
+	//fmt.Printf("CCondition complete..[%d]\n", i)
 	return i != 0
 }
 
