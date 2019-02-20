@@ -46,10 +46,14 @@ func StartRuleSession (ruleSessionName string) {
 }
 
 //export AddRule
-func AddRule(ruleSessionName string, ruleName string, idrJson string) {
-	//fmt.Printf("Adding a rule..[%s][%s][%s]\n",ruleSessionName, ruleName, idrJson)
+func AddRule(ruleSessionName string, ruleName string, tupleTypesJsonStr string) {
+	fmt.Printf("Adding a rule..[%s][%s][%s]\n",ruleSessionName, ruleName, idrJson)
 	rule := ruleapi.NewRule(ruleName)
-	rule.AddCondition("c1", []string{"n1"}, CCondition, nil)
+	tupleTypes := []string{}
+	json.Unmarshal([]byte(tupleTypesJsonStr), &tupleTypes)
+
+
+	rule.AddCondition("c1", tupleTypes, CCondition, nil)
 	rule.SetAction(CAction)
 	rs := ruleSessions[ruleSessionName]
 	rs.AddRule(rule)

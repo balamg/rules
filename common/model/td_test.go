@@ -48,7 +48,7 @@ func TestTwo(t *testing.T) {
 }
 
 func Test_TupleJson (t *testing.T) {
-	tupleDescAbsFileNm := common.GetAbsPathForResource("src/github.com/project-flogo/rules/examples/rulesapp/rulesapp.json")
+	tupleDescAbsFileNm := common.GetAbsPathForResource("src/github.com/project-flogo/rules/pyruletest/pyrulesapp.json")
 	tupleDescriptor := common.FileToString(tupleDescAbsFileNm)
 
 	//fmt.Printf("Loaded tuple descriptor: \n%s\n", tupleDescriptor)
@@ -100,6 +100,13 @@ func Test_TupleJson (t *testing.T) {
 	ts1 := TupleFromJsonStr(x)
 	fmt.Printf("done.. %v\n", ts1)
 
+	y := "[\"n1\", \"n2\"]"
+
+	by := []byte (y)
+	strarr := []string{}
+	json.Unmarshal(by,&strarr)
+
+	fmt.Printf("done")
 
 }
 

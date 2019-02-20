@@ -1,5 +1,6 @@
 from ctypes import *
 import pyrules
+import json
 
 conditionDict = {}
 actionDict = {}
@@ -39,7 +40,7 @@ def RegisterTupleDescriptors (tupleDescJson):
 def CreateRuleSession (ruleSessionName):
     pyrules.lib.CreateRuleSession(GoStr(ruleSessionName))
 
-def AddRule (ruleSessionName, ruleName, idrs, condFn, actionFn):
+def AddRule (ruleSessionName, ruleName, tupleTypesArr, condFn, actionFn):
 
     key = ruleSessionName + ":" + ruleName + ":" + "c1"
     conditionDict[key] = condFn
@@ -47,7 +48,8 @@ def AddRule (ruleSessionName, ruleName, idrs, condFn, actionFn):
     key = ruleSessionName + ":" + ruleName
     actionDict[key] = actionFn
 
-    pyrules.lib.AddRule (GoStr(ruleSessionName), GoStr(ruleName), GoStr(idrs))
+    tupleTypesJsonStr = json.dumps(tupleTypesArr)
+    pyrules.lib.AddRule (GoStr(ruleSessionName), GoStr(ruleName), GoStr(tupleTypesJsonStr))
 
 def StartRuleSession (ruleSessionName):
     pyrules.lib.StartRuleSession(GoStr(ruleSessionName))
