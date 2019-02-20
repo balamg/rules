@@ -5,6 +5,7 @@ package main
 import "C"
 
 import (
+	"encoding/json"
 	"github.com/project-flogo/rules/common/model"
 	"fmt"
 	"context"
@@ -57,29 +58,33 @@ func AddRule(ruleSessionName string, ruleName string, idrJson string) {
 
 //export Assert
 func Assert(ruleSessionName string, tupleJson string) {
+	//fmt.Printf("Got json: %s\n", tupleJson)
 	//Now assert a "n1" tuple
-	fmt.Printf("Asserting tuple [%s].\n", tupleJson)
-	t2, _ := model.NewTupleWithKeyValues("n1", "Bob")
-	t2.SetString(nil, "name", "Bob")
+	tuple := TupleFromJsonStr(tupleJson)
 	rs := ruleSessions[ruleSessionName]
-	rs.Assert(nil, t2)
+	fmt.Printf("Asserting tuple [%s].\n", tupleJson)
+	rs.Assert(nil, tuple)
 }
 
 
 func CAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
-	tupleJson := ""
-	//fmt.Printf("CAction started..[%s][%s]\n", ruleName, tupleJson)
-	//fmt.Printf("Rule fired: [%s]\n", ruleName)
-	//fmt.Printf("Context is [%s]\n", ruleCtx)
-	C.performAction(C.CString(ruleName), C.CString(tupleJson))
-	//fmt.Printf("CAction complete..\n")
+	tuplesJson, err := json.Marshal(tuples)
+	if err != nil {
+		fmt.Printf("Error in CAction serialize: %s", err)
+		return;
+	}
+	//fmt.Println(string(tuplesJson))
+	C.performAction(C.CString(ruleName), C.CString(string(tuplesJson)))
 }
 
 func CCondition(condName string, ruleName string, tuples map[model.TupleType]model.Tuple, ctx model.RuleContext) bool {
-	//tupleJson := "x"
-	//fmt.Printf("CCondition started..[%s][%s][%s]\n", ruleName, condName, "")
-	//var ret bool
-	i := C.evalCondition(C.CString(ruleName), C.CString(condName), C.CString(""))
+	tuplesJson, err := json.Marshal(tuples)
+	if err != nil {
+		fmt.Printf("Error in CCondition serialize: %s", err)
+		return false;
+	}
+	//fmt.Printf("In CCondition: [%s]\n", string(tuplesJson))
+	i := C.evalCondition(C.CString(ruleName), C.CString(condName), C.CString(string(tuplesJson)))
 	//fmt.Printf("CCondition complete..[%d]\n", i)
 	return i != 0
 }

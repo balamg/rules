@@ -11,16 +11,22 @@ def GoStr (str):
     return GoString(str, len(str))
 
 
-def PyConditionCb (ruleName, conditionName, tupleJson):
+def PyConditionCb (ruleName, conditionName, tupleJsonStr):
     key = "rs:" + ruleName + ":" + "c1"
+    # print ("In PyConditionCb", tupleJsonStr);
+    tuples = pyrules.TuplesFromJsonStr(tupleJsonStr)
+
     conditionCb = conditionDict[key]
-    ret = conditionCb(ruleName, conditionName, tupleJson)
+    ret = conditionCb(ruleName, conditionName, tuples)
     return ret;
 
-def PyActionCb (ruleName, tupleJson):
+def PyActionCb (ruleName, tupleJsonStr):
     key = "rs:" + ruleName
+    # print ("In PyActionCb", tupleJsonStr);
+    tuples = pyrules.TuplesFromJsonStr(tupleJsonStr)
+
     actionCb = actionDict[key]
-    actionCb(ruleName, tupleJson)
+    actionCb(ruleName, tuples)
     return 0;
 
 def RegisterTupleDescriptorsFromFile (tupleDescFileName):
@@ -45,6 +51,10 @@ def AddRule (ruleSessionName, ruleName, idrs, condFn, actionFn):
 
 def StartRuleSession (ruleSessionName):
     pyrules.lib.StartRuleSession(GoStr(ruleSessionName))
+
+def AssertTuple (ruleSessionName, tuple):
+    tupleJson = pyrules.TuplesToJsonStr(tuple)
+    pyrules.lib.Assert(GoStr(ruleSessionName),GoStr(tupleJson))
 
 def Assert (ruleSessionName, tupleJson):
     pyrules.lib.Assert(GoStr(ruleSessionName),GoStr(tupleJson))

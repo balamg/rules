@@ -41,14 +41,76 @@ class TupleDescriptorDecoder(json.JSONDecoder):
             self.tds.append(td)
             return td
 
+class Tuple:
+    def __init__(self, tupleType, tuples):
+        self.TupleType = tupleType
+        self.Tuples = tuples
 
+class TupleEncoder(json.JSONEncoder):
+    def default(self, o):
+        # if isinstance(o, Tuple):
+        #     return {"name" : o.name, "type" : o.type, "pk-index" : o.pkindex}
+        # else:
+            return o.__dict__
+
+## Not used, does not work properly
+class TupleDecoder(json.JSONDecoder):
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+    def object_hook(self, dct):
+        if 'Tuples' in dct:
+            tp = Tuple(dct["TupleType"], dct["Tuples"])
+        else:
+            return dct
+
+def TupleFromJsonStr (tupleJsonStr):
+    parsedJson = json.loads(tupleJsonStr)
+    tupleMap = {}
+    for outerKey, outerVal in parsedJson.iteritems():
+        for innerKey, innerVal in outerVal.iteritems():
+            if innerKey == "Tuples":
+                tuple = Tuple (outerKey, innerVal)
+                tupleMap[outerKey] = tuple
+    return tupleMap
+
+def TuplesFromJsonStr (tupleJsonStr):
+    parsedJson = json.loads(tupleJsonStr)
+    tupleMap = {}
+    for outerKey, outerVal in parsedJson.iteritems():
+        for innerKey, innerVal in outerVal.iteritems():
+            if innerKey == "Tuples":
+                tuple = Tuple (outerKey, innerVal)
+                tupleMap[outerKey] = tuple
+    return tupleMap
+
+def TuplesToJsonStr (tuple):
+    tupleJsonStr = json.dumps(tuple, cls=TupleEncoder)
+    return tupleJsonStr
 
 if __name__ == "__main__":
-    jsn = open("/home/bala/go/src/github.com/project-flogo/rules/examples/rulesapp/rulesapp.json", 'r').read()
-    print (jsn)
-    fromJsn = json.loads(jsn, cls=TupleDescriptorDecoder)
-    toJsn = json.dumps(fromJsn, cls=TupleDescriptorEncoder)
-    print (toJsn)
+    #Construct a tuple descriptor from json and back
+    tdJsonStr = open("/home/bala/go/src/github.com/project-flogo/rules/examples/rulesapp/rulesapp.json", 'r').read()
+    print (tdJsonStr)
+    tdFromJsonStr = json.loads(tdJsonStr, cls=TupleDescriptorDecoder)
+    tdToJsonStr = json.dumps(tdFromJsonStr, cls=TupleDescriptorEncoder)
+    print (tdToJsonStr)
 
-    # tds1 = json.loads(y, cls=TupleDescriptorDecoder)
-    # print ("done..\n", y)
+    #Construct a tuple map from json and back
+    tupleJsonStr = '{"n1":{"TupleType":"n1","Tuples":{"age":48,"gender":"Male","name":"Bala","salary":100.1212}},"n2":{"TupleType":"n2","Tuples":{"name":"Supriya"}}}'
+    tuplesFromJson = TuplesFromJsonStr(tupleJsonStr)
+    print (tuplesFromJson)
+    tupleToJsonStr = json.dumps(tuplesFromJson, cls=TupleEncoder)
+    print (tupleToJsonStr)
+
+    #Construct a tuple from a map
+    props = {}
+    props['name'] = "Bala"
+    props['age'] = 48
+    props['gender'] = "Male"
+    props['salary'] = 100.1
+    tuple = Tuple("n1", props)
+    #and serialize it
+    tupleJsonStr = json.dumps(tuple, cls=TupleEncoder)
+
+    print (tupleJsonStr)
