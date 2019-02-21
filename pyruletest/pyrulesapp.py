@@ -18,7 +18,7 @@ if __name__ == "__main__":
         n2 = tupleMap["n2"]
         nm2 = n2.Tuples["name"]
 
-        print nm1, nm2
+        print nm1, nm2, tupleMap["n3"].Tuples["name"]
 
     pyrules.RegisterTupleDescriptorsFromFile("pyrulesapp.json")
 
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     pyrules.StartRuleSession("rs")
 
-    pyrules.AddRule("rs", "myrule1", ["n1", "n2"], MyConditionCb, MyActionCb)
+    pyrules.AddRule("rs", "myrule1", ["n1", "n2", "n3"], MyConditionCb, MyActionCb)
 
 
     #Construct a tuple from a map
@@ -45,5 +45,13 @@ if __name__ == "__main__":
     props['gender'] = "Male"
     props['salary'] = 100.1
     tuple = pyrules.Tuple("n2", props)
+    pyrules.AssertTuple("rs", tuple)
+
+    props = {}
+    props['name'] = "Pete"
+    props['age'] = 48
+    props['gender'] = "Male"
+    props['salary'] = 100.1
+    tuple = pyrules.Tuple("n3", props)
     pyrules.AssertTuple("rs", tuple)
 
