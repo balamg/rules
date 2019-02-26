@@ -1,0 +1,18 @@
+{
+    "rules":[
+        {
+            "name": "bobrule",
+            "conditions": [
+                {
+                "name": "Bob",
+                "identifiers": [
+                    "n1"
+                ],
+                "evaluator": "pyrulesapp.C_Bob"
+                }
+            ],
+            "actionFunction": "pyrulesapp.A_Bob"
+        }
+    ]
+}
+          
