@@ -1,17 +1,30 @@
 {
     "rules":[
         {
-            "name": "bobrule",
+            "name": "nametom",
             "conditions": [
                 {
-                "name": "Bob",
+                "name": "nametom",
                 "identifiers": [
                     "n1"
                 ],
-                "evaluator": "pyrulesapp.C_Bob"
+                "evaluator": "c.nametom"
                 }
             ],
-            "actionFunction": "pyrulesapp.A_Bob"
+            "actionFunction": "a.nametom"
+        },
+        {
+            "name": "bothnamestom",
+            "conditions": [
+                {
+                    "name": "bothnamestom",
+                    "identifiers": [
+                        "n1", "n2"
+                    ],
+                    "evaluator": "c.bothnamestom"
+                }
+            ],
+            "actionFunction": "a.bothnamestom"
         }
     ]
 }

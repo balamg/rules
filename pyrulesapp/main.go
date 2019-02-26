@@ -24,9 +24,10 @@ func CAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples 
 	}
 	fmt.Println("action: " + string(tuplesJson))
 	//C.performAction(C.CString(ruleName), C.CString(string(tuplesJson)))
-	if ruleName == "bobrule" {
-		pyembed.EvalRuleAction("mypyrules", "MyActionCbFromJson", "rule1", string(tuplesJson))
-
+	if ruleName == "nametom" {
+		pyembed.EvalRuleAction("mypyrules", "nametom", ruleName, string(tuplesJson))
+	} else if ruleName == "bothnamestom" {
+		pyembed.EvalRuleAction("mypyrules", "bothnamestom", ruleName, string(tuplesJson))
 	}
 }
 
@@ -36,17 +37,22 @@ func CCondition(condName string, ruleName string, tuples map[model.TupleType]mod
 
 
 	fmt.Println("here.." + string(tuplesJson))
+	if ruleName == "nametom" {
+		tf = pyembed.EvalRuleCondition("mypyrules", "c_nametom", ruleName, condName, string(tuplesJson))
+	} else if ruleName == "bothnamestom" {
+		tf = pyembed.EvalRuleCondition("mypyrules", "c_bothnamestom", ruleName, condName, string(tuplesJson))
 
-	tf = pyembed.EvalRuleCondition("mypyrules", "MyConditionCbFromJson", ruleName, condName, string(tuplesJson))
-
-
+	}
 	return tf
 }
 
 func init() {
 
-	config.RegisterConditionEvaluator("pyrulesapp.C_Bob", CCondition)
-	config.RegisterActionFunction("pyrulesapp.A_Bob", CAction)
+	config.RegisterConditionEvaluator("c.nametom", CCondition)
+	config.RegisterActionFunction("a.nametom", CAction)
+
+	config.RegisterConditionEvaluator("c.bothnamestom", CCondition)
+	config.RegisterActionFunction("a.bothnamestom", CAction)
 
 
 }
@@ -93,5 +99,18 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error [%s]\n", err)
 	}
+
+
+
+	//Now assert a "n1" tuple
+	fmt.Println("Asserting n2 tuple with name=Tom")
+	t2, err := model.NewTupleWithKeyValues("n2", "Tom")
+	if err != nil {
+		fmt.Printf("Error [%s]\n", err)
+	}
+	t1.SetString(nil, "name", "Tom")
+	err = rs.Assert(nil, t2)
+
+
 	fmt.Printf("Done..\n")
 }

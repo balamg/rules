@@ -1,8 +1,8 @@
 import pyrules
 
-def MyConditionCbFromJson(ruleName, conditionName, tupleJsonStr):
+def c_nametom(ruleName, conditionName, tupleJsonStr):
     try:
-        print ("In MyConditionCbFromJson\n");
+        print ("In c_nametom\n");
         print(ruleName, conditionName, tupleJsonStr);
 
         tupleMap = pyrules.TuplesFromJsonStr(tupleJsonStr)
@@ -13,9 +13,38 @@ def MyConditionCbFromJson(ruleName, conditionName, tupleJsonStr):
         return 0
 
 
-def MyActionCbFromJson(ruleName, tupleJsonStr):
+def nametom(ruleName, tupleJsonStr):
     try:
-        print ("In MyActionCbFromJson\n");
+        print ("In nametom\n");
+        tupleMap = pyrules.TuplesFromJsonStr(tupleJsonStr)
+        n1 = tupleMap["n1"]
+        nm1 = n1.Tuples["name"]
+        print nm1
+    except (Exception):
+        return
+
+def c_bothnamestom(ruleName, conditionName, tupleJsonStr):
+    try:
+        print ("In c_bothnamestom\n");
+        print(ruleName, conditionName, tupleJsonStr);
+
+        tupleMap = pyrules.TuplesFromJsonStr(tupleJsonStr)
+        n1 = tupleMap["n1"]
+        name1 = n1.Tuples["name"]
+
+        n2 = tupleMap["n2"]
+        name2 = n2.Tuples["name"]
+
+        print name1, name2
+        return (name1 == "Tom" and name1 == name2)
+
+    except (Exception):
+        return 0
+
+
+def bothnamestom(ruleName, tupleJsonStr):
+    try:
+        print ("In bothnamestom\n");
         tupleMap = pyrules.TuplesFromJsonStr(tupleJsonStr)
         n1 = tupleMap["n1"]
         nm1 = n1.Tuples["name"]
