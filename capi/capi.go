@@ -6,6 +6,7 @@ import "C"
 
 import (
 	"encoding/json"
+	"github.com/project-flogo/rules/common"
 	"github.com/project-flogo/rules/common/model"
 	"fmt"
 	"context"
@@ -64,7 +65,7 @@ func AddRule(ruleSessionName string, ruleName string, tupleTypesJsonStr string) 
 func Assert(ruleSessionName string, tupleJson string) {
 	//fmt.Printf("Got json: %s\n", tupleJson)
 	//Now assert a "n1" tuple
-	tuple := TupleFromJsonStr(tupleJson)
+	tuple := common.TupleFromJsonStr(tupleJson)
 	rs := ruleSessions[ruleSessionName]
 	fmt.Printf("Asserting tuple [%s].\n", tupleJson)
 	rs.Assert(nil, tuple)

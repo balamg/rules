@@ -70,7 +70,7 @@ func main() {
 	ruleSession.Start(nil)
 
 	log.RootLogger().Info("--- Starting MQTT Subscriber ---")
-	setupFlogoMQTTTriggers()
+	//setupFlogoMQTTTriggers()
 }
 
 // loads the tuple schema

@@ -1,0 +1,31 @@
+{
+    "rules":[
+        {
+            "name": "nametom",
+            "conditions": [
+                {
+                "name": "nametom",
+                "identifiers": [
+                    "n1"
+                ],
+                "evaluator": "c.nametom"
+                }
+            ],
+            "actionFunction": "a.nametom"
+        },
+        {
+            "name": "bothnamestom",
+            "conditions": [
+                {
+                    "name": "bothnamestom",
+                    "identifiers": [
+                        "n1", "n2"
+                    ],
+                    "evaluator": "c.bothnamestom"
+                }
+            ],
+            "actionFunction": "a.bothnamestom"
+        }
+    ]
+}
+          

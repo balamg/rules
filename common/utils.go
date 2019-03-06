@@ -2,6 +2,8 @@ package common
 
 import (
 	"crypto/rand"
+	"encoding/json"
+	"github.com/project-flogo/rules/common/model"
 	"io"
 	"time"
 
@@ -66,4 +68,13 @@ func FileToString(fileName string) string {
 		return ""
 	}
 	return string(dat)
+}
+
+func TupleFromJsonStr(tupleJsonStr string) model.Tuple {
+	jsonMap := make(map[model.TupleType]interface{})
+	json.Unmarshal([]byte(tupleJsonStr), &jsonMap)
+	tupleType := jsonMap["TupleType"].(string)
+	tupleProps := jsonMap["Tuples"].(map[string]interface{})
+	tuple, _ := model.NewTuple(model.TupleType(tupleType), tupleProps)
+	return tuple
 }
