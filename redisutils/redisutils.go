@@ -61,7 +61,6 @@ func (rh *RedisHandle) HSetAll(key string, kvs map[string]interface{}) error {
 	return error
 }
 
-
 func (rh *RedisHandle) Multi() redis.Conn {
 	c := rh.getPool().Get()
 	c.Send("MULTI")

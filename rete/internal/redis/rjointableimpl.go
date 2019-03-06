@@ -1,11 +1,11 @@
 package redis
 
 import (
+	"context"
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/redisutils"
 	"github.com/project-flogo/rules/rete/internal/types"
 	"strconv"
-	"context"
 )
 
 type joinTableImpl struct {

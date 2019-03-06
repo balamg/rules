@@ -2,8 +2,8 @@ package mem
 
 import (
 	"container/list"
-	"github.com/project-flogo/rules/rete/internal/types"
 	"context"
+	"github.com/project-flogo/rules/rete/internal/types"
 )
 
 type jtRefsServiceImpl struct {

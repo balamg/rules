@@ -26,7 +26,7 @@ type MutableRule interface {
 	SetAction(actionFn ActionFunction)
 	SetPriority(priority int)
 	SetContext(ctx RuleContext)
-	AddExprCondition (conditionName string, cExpr string, ctx RuleContext) (error)
+	AddExprCondition(conditionName string, cExpr string, ctx RuleContext) error
 }
 
 //Condition interface to maintain/get various condition properties

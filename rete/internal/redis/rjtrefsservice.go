@@ -1,10 +1,10 @@
 package redis
 
 import (
+	"context"
 	"github.com/project-flogo/rules/redisutils"
 	"github.com/project-flogo/rules/rete/internal/types"
 	"strconv"
-	"context"
 )
 
 type jtRefsServiceImpl struct {

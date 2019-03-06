@@ -1,9 +1,9 @@
 package types
 
 import (
+	"context"
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/rete/common"
-	"context"
 )
 
 type Network interface {

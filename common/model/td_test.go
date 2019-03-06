@@ -47,7 +47,7 @@ func TestTwo(t *testing.T) {
 
 }
 
-func Test_TupleJson (t *testing.T) {
+func Test_TupleJson(t *testing.T) {
 	tupleDescAbsFileNm := common.GetAbsPathForResource("src/github.com/project-flogo/rules/pyruletest/pyrulesapp.json")
 	tupleDescriptor := common.FileToString(tupleDescAbsFileNm)
 
@@ -59,23 +59,22 @@ func Test_TupleJson (t *testing.T) {
 		return
 	}
 
-	var mp = map[string]interface{} {
-		"name" : "Bala",
-		"age" : 48,
-		"gender" : "Male",
-		"salary" : 100.1212,
+	var mp = map[string]interface{}{
+		"name":   "Bala",
+		"age":    48,
+		"gender": "Male",
+		"salary": 100.1212,
 	}
 	t1, err := NewTuple("n1", mp)
 
-	var mp2 = map[string]interface{} {
-		"name" : "Supriya",
+	var mp2 = map[string]interface{}{
+		"name": "Supriya",
 	}
 	t2, err := NewTuple("n2", mp2)
 
-
-	var tuples = map [TupleType]Tuple {
-		TupleType("n1") : t1,
-		TupleType("n2") : t2,
+	var tuples = map[TupleType]Tuple{
+		TupleType("n1"): t1,
+		TupleType("n2"): t2,
 	}
 
 	//tuples := []Tuple {t1, t2}
@@ -83,11 +82,9 @@ func Test_TupleJson (t *testing.T) {
 	b, err := json.Marshal(tuples)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
-		return;
+		return
 	}
-	fmt.Println("**"+string(b)+"**")
-
-
+	fmt.Println("**" + string(b) + "**")
 
 	unmarshalled := make(map[TupleType]interface{})
 
@@ -102,9 +99,9 @@ func Test_TupleJson (t *testing.T) {
 
 	y := "[\"n1\", \"n2\"]"
 
-	by := []byte (y)
+	by := []byte(y)
 	strarr := []string{}
-	json.Unmarshal(by,&strarr)
+	json.Unmarshal(by, &strarr)
 
 	fmt.Printf("done")
 
@@ -116,7 +113,7 @@ func TuplesFromJsonMap(tupleJson map[TupleType]interface{}) map[TupleType]Tuple 
 		tupleType := TupleType(k)
 		tupMap := v.(map[string]interface{})["Tuples"].(map[string]interface{})
 		tuple, _ := NewTuple(tupleType, tupMap)
-		tupleMap [tupleType] = tuple
+		tupleMap[tupleType] = tuple
 	}
 	return tupleMap
 }

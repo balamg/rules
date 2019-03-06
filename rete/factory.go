@@ -1,11 +1,11 @@
 package rete
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/project-flogo/rules/rete/internal/mem"
 	"github.com/project-flogo/rules/rete/internal/redis"
 	"github.com/project-flogo/rules/rete/internal/types"
-	"context"
 )
 
 type TypeFactory struct {

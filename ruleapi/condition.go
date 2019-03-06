@@ -53,10 +53,10 @@ func (cnd *conditionImpl) GetTupleTypeAlias() []model.TupleType {
 	return cnd.identifiers
 }
 
-func (cnd *conditionImpl) Evaluate (condName string, ruleNm string, tuples map[model.TupleType]model.Tuple, ctx model.RuleContext) (bool, error) {
+func (cnd *conditionImpl) Evaluate(condName string, ruleNm string, tuples map[model.TupleType]model.Tuple, ctx model.RuleContext) (bool, error) {
 	result := false
 	if cnd.cfn != nil {
-		result = cnd.cfn (condName, ruleNm, tuples, ctx)
+		result = cnd.cfn(condName, ruleNm, tuples, ctx)
 	}
 
 	return result, nil

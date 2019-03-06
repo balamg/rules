@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func Test_ThreeConditions (t *testing.T) {
+func Test_ThreeConditions(t *testing.T) {
 
 	rs, _ := createRuleSession()
 
@@ -36,11 +36,11 @@ func Test_ThreeConditions (t *testing.T) {
 }
 
 func three_tuples(ruleName string, condName string, tuples map[model.TupleType]model.Tuple, ctx model.RuleContext) bool {
-	fmt.Printf("Condition fired: [%s], [%d]\n", ruleName,len(tuples))
+	fmt.Printf("Condition fired: [%s], [%d]\n", ruleName, len(tuples))
 	return true
 }
 
 func three_tuple_action(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
 	t := ctx.Value(TestKey{}).(*testing.T)
-	t.Logf("Rule fired: [%s], [%d]\n", ruleName,len(tuples))
+	t.Logf("Rule fired: [%s], [%d]\n", ruleName, len(tuples))
 }

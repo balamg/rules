@@ -6,16 +6,16 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/project-flogo/core/app/resource"
 	"github.com/project-flogo/core/action"
+	"github.com/project-flogo/core/app/resource"
 	"github.com/project-flogo/core/data"
-	"github.com/project-flogo/core/trigger"
+	"github.com/project-flogo/core/data/coerce"
 	"github.com/project-flogo/core/support/log"
+	"github.com/project-flogo/core/trigger"
 	"github.com/project-flogo/rules/common"
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/config"
 	"github.com/project-flogo/rules/ruleapi"
-	"github.com/project-flogo/core/data/coerce"
 )
 
 // Action ref to register the action factory

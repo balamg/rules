@@ -20,7 +20,7 @@ func CAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples 
 	tuplesJson, err := json.Marshal(tuples)
 	if err != nil {
 		fmt.Printf("Error in CAction serialize: %s", err)
-		return;
+		return
 	}
 	fmt.Println("action: " + string(tuplesJson))
 	//C.performAction(C.CString(ruleName), C.CString(string(tuplesJson)))
@@ -34,7 +34,6 @@ func CAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples 
 func CCondition(condName string, ruleName string, tuples map[model.TupleType]model.Tuple, ctx model.RuleContext) bool {
 	tf := false
 	tuplesJson, _ := json.Marshal(tuples)
-
 
 	fmt.Println("here.." + string(tuplesJson))
 	if ruleName == "nametom" {
@@ -53,7 +52,6 @@ func init() {
 
 	config.RegisterConditionEvaluator("c.bothnamestom", CCondition)
 	config.RegisterActionFunction("a.bothnamestom", CAction)
-
 
 }
 
@@ -100,8 +98,6 @@ func main() {
 		fmt.Printf("Error [%s]\n", err)
 	}
 
-
-
 	//Now assert a "n1" tuple
 	fmt.Println("Asserting n2 tuple with name=Tom")
 	t2, err := model.NewTupleWithKeyValues("n2", "Tom")
@@ -110,7 +106,6 @@ func main() {
 	}
 	t1.SetString(nil, "name", "Tom")
 	err = rs.Assert(nil, t2)
-
 
 	fmt.Printf("Done..\n")
 }

@@ -1,9 +1,9 @@
 package mem
 
 import (
+	"context"
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/rete/internal/types"
-	"context"
 )
 
 type jtServiceImpl struct {

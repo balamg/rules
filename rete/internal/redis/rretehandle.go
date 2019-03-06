@@ -1,9 +1,9 @@
 package redis
 
 import (
+	"context"
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/rete/internal/types"
-	"context"
 )
 
 //Holds a tuple reference and related state
@@ -41,6 +41,7 @@ func (hdl *reteHandleImpl) GetTuple() model.Tuple {
 func (hdl *reteHandleImpl) GetTupleKey() model.TupleKey {
 	return hdl.tupleKey
 }
+
 //
 //func (hdl *reteHandleImpl) AddJoinTableRowRef(joinTableRowVar types.JoinTableRow, joinTableVar types.JoinTable) {
 //	hdl.Nw.GetJtRefService().AddEntry(hdl, joinTableVar.GetName(), joinTableRowVar.GetID())

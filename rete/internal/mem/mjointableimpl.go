@@ -2,9 +2,9 @@ package mem
 
 import (
 	"container/list"
+	"context"
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/rete/internal/types"
-	"context"
 )
 
 type joinTableImpl struct {

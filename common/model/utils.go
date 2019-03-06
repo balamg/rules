@@ -21,7 +21,6 @@ func Contains(identifiers []TupleType, toCheck TupleType) (bool, int) {
 	return false, -1
 }
 
-
 func TupleFromJsonStr(tupleJsonStr string) Tuple {
 	jsonMap := make(map[TupleType]interface{})
 	json.Unmarshal([]byte(tupleJsonStr), &jsonMap)

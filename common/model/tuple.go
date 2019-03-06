@@ -43,8 +43,8 @@ type MutableTuple interface {
 }
 
 type tupleImpl struct {
-	TupleType TupleType					`json:"TupleType"`
-	Tuples    map[string]interface{}	`json:"Tuples"`
+	TupleType TupleType              `json:"TupleType"`
+	Tuples    map[string]interface{} `json:"Tuples"`
 	key       TupleKey
 	td        *TupleDescriptor
 }
@@ -121,7 +121,6 @@ func (t *tupleImpl) GetLong(name string) (val int64, err error) {
 	}
 	//try to coerce the tuple value to a long
 	v, err := coerce.ToInt64(t.Tuples[name])
-
 
 	return v, err
 }

@@ -45,8 +45,8 @@ func (jn *joinNodeImpl) initjoinNodeImplVar(nw *reteNetworkImpl, rule model.Rule
 	lname := ""
 	rname := ""
 	if conditionVar != nil {
-		lname = "L_"+conditionVar.GetName()
-		rname = "R_"+conditionVar.GetName()
+		lname = "L_" + conditionVar.GetName()
+		rname = "R_" + conditionVar.GetName()
 	} else {
 		lname = rule.GetName() + "nil-L"
 		rname = rule.GetName() + "nil-R"
