@@ -1,11 +1,11 @@
 {
   "rs" : {
     "prefix" : "x",
-    "store-ref" : "redis"
+    "store-ref" : "mem"
   },
   "rete": {
-    "jt": "redis",
-    "idgen" : "redis"
+    "jt": "mem",
+    "idgen" : "mem"
   },
   "store": [
     {
@@ -19,7 +19,7 @@
   ],
   "idgen-ref": [
     {
-      "name": "memory"
+      "name": "mem"
     },
     {
       "name": "redis",
