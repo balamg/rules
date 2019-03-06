@@ -5,11 +5,10 @@ package main
 import "C"
 
 import (
-	"encoding/json"
-	"github.com/project-flogo/rules/common"
-	"github.com/project-flogo/rules/common/model"
-	"fmt"
 	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/ruleapi"
 )
 var (
@@ -65,7 +64,7 @@ func AddRule(ruleSessionName string, ruleName string, tupleTypesJsonStr string) 
 func Assert(ruleSessionName string, tupleJson string) {
 	//fmt.Printf("Got json: %s\n", tupleJson)
 	//Now assert a "n1" tuple
-	tuple := common.TupleFromJsonStr(tupleJson)
+	tuple := model.TupleFromJsonStr(tupleJson)
 	rs := ruleSessions[ruleSessionName]
 	fmt.Printf("Asserting tuple [%s].\n", tupleJson)
 	rs.Assert(nil, tuple)

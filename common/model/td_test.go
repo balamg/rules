@@ -142,12 +142,12 @@ func TuplesFromJsonMap(tupleJson map[TupleType]interface{}) map[TupleType]Tuple 
 //
 //	return tuple
 //}
-
-func TupleFromJsonStr(tupleJsonStr string) Tuple {
-	jsonMap := make(map[TupleType]interface{})
-	json.Unmarshal([]byte(tupleJsonStr), &jsonMap)
-	tupleType := jsonMap["TupleType"].(string)
-	tupleProps := jsonMap["Tuples"].(map[string]interface{})
-	tuple, _ := NewTuple(TupleType(tupleType), tupleProps)
-	return tuple
-}
+//
+//func TupleFromJsonStr(tupleJsonStr string) Tuple {
+//	jsonMap := make(map[TupleType]interface{})
+//	json.Unmarshal([]byte(tupleJsonStr), &jsonMap)
+//	tupleType := jsonMap["TupleType"].(string)
+//	tupleProps := jsonMap["Tuples"].(map[string]interface{})
+//	tuple, _ := NewTuple(TupleType(tupleType), tupleProps)
+//	return tuple
+//}
