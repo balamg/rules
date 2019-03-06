@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/project-flogo/rules/common"
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/ruleapi"
-	"github.com/project-flogo/rules/common"
 )
 
 func main() {
@@ -25,8 +25,9 @@ func main() {
 		return
 	}
 
+	content := getFileContent("src/github.com/project-flogo/rules/examples/rulesapp/rsconfig.json")
+	rs, _ := ruleapi.GetOrCreateRuleSessionFromConfig("asession", string(content))
 	//Create a RuleSession
-	rs, _ := ruleapi.GetOrCreateRuleSession("asession")
 
 	//// check for name "Bob" in n1
 	rule := ruleapi.NewRule("n1.name == Bob")
@@ -45,6 +46,8 @@ func main() {
 	rs.AddRule(rule2)
 	fmt.Printf("Rule added: [%s]\n", rule2.GetName())
 
+	//set a transaction handler
+	rs.RegisterRtcTransactionHandler(txHandler, nil)
 	//Start the rule session
 	rs.Start(nil)
 
@@ -52,19 +55,28 @@ func main() {
 	fmt.Println("Asserting n1 tuple with name=Tom")
 	t1, _ := model.NewTupleWithKeyValues("n1", "Tom")
 	t1.SetString(nil, "name", "Tom")
-	rs.Assert(nil, t1)
+	err = rs.Assert(nil, t1)
+	if err != nil {
+		fmt.Printf("Warn: [%s]\n", err)
+	}
 
 	//Now assert a "n1" tuple
 	fmt.Println("Asserting n1 tuple with name=Bob")
 	t2, _ := model.NewTupleWithKeyValues("n1", "Bob")
 	t2.SetString(nil, "name", "Bob")
-	rs.Assert(nil, t2)
+	err = rs.Assert(nil, t2)
+	if err != nil {
+		fmt.Printf("Warn: [%s]\n", err)
+	}
 
 	//Now assert a "n2" tuple
 	fmt.Println("Asserting n2 tuple with name=Bob")
 	t3, _ := model.NewTupleWithKeyValues("n2", "Bob")
 	t3.SetString(nil, "name", "Bob")
-	rs.Assert(nil, t3)
+	err = rs.Assert(nil, t3)
+	if err != nil {
+		fmt.Printf("Warn: [%s]\n", err)
+	}
 
 	//Retract tuples
 	rs.Retract(nil, t1)
@@ -72,10 +84,11 @@ func main() {
 	rs.Retract(nil, t3)
 
 	//delete the rule
-	rs.DeleteRule(rule.GetName())
+	rs.DeleteRule(rule2.GetName())
 
 	//unregister the session, i.e; cleanup
 	rs.Unregister()
+
 }
 
 func checkForBob(ruleName string, condName string, tuples map[model.TupleType]model.Tuple, ctx model.RuleContext) bool {
@@ -94,7 +107,7 @@ func checkForBobAction(ctx context.Context, rs model.RuleSession, ruleName strin
 	fmt.Printf("Context is [%s]\n", ruleCtx)
 	t1 := tuples["n1"]
 	if t1 == nil {
-		fmt.Println("Should not get nil tuples here in JoinCondition! This is an error")
+		fmt.Println("Should not get nil tuples here in JoinCondition1! This is an error")
 		return
 	}
 }
@@ -103,7 +116,7 @@ func checkSameNamesCondition(ruleName string, condName string, tuples map[model.
 	t1 := tuples["n1"]
 	t2 := tuples["n2"]
 	if t1 == nil || t2 == nil {
-		fmt.Println("Should not get nil tuples here in JoinCondition! This is an error")
+		fmt.Println("Should not get nil tuples here in JoinCondition2! This is an error")
 		return false
 	}
 	name1, _ := t1.GetString("name")
@@ -122,4 +135,20 @@ func checkSameNamesAction(ctx context.Context, rs model.RuleSession, ruleName st
 	name1, _ := t1.GetString("name")
 	name2, _ := t2.GetString("name")
 	fmt.Printf("n1.name = [%s], n2.name = [%s]\n", name1, name2)
+}
+
+func getFileContent(filePath string) string {
+	absPath := common.GetAbsPathForResource(filePath)
+	return common.FileToString(absPath)
+}
+
+func txHandler(ctx context.Context, rs model.RuleSession, rtxn model.RtcTxn, handlerCtx interface{}) {
+
+	store := rs.GetStore()
+	store.SaveTuples(rtxn.GetRtcAdded())
+
+	store.SaveModifiedTuples(rtxn.GetRtcModified())
+
+	store.DeleteTuples(rtxn.GetRtcDeleted())
+
 }
