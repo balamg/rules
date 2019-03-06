@@ -43,8 +43,8 @@ type MutableTuple interface {
 }
 
 type tupleImpl struct {
-	tupleType TupleType
-	tuples    map[string]interface{}
+	TupleType TupleType					`json:"TupleType"`
+	Tuples    map[string]interface{}	`json:"Tuples"`
 	key       TupleKey
 	td        *TupleDescriptor
 }
@@ -77,7 +77,7 @@ func NewTupleWithKeyValues(tupleType TupleType, values ...interface{}) (mtuple M
 }
 
 func (t *tupleImpl) GetTupleType() TupleType {
-	return t.tupleType
+	return t.TupleType
 }
 
 func (t *tupleImpl) GetTupleDescriptor() *TupleDescriptor {
@@ -86,7 +86,7 @@ func (t *tupleImpl) GetTupleDescriptor() *TupleDescriptor {
 
 func (t *tupleImpl) GetProperties() []string {
 	keys := []string{}
-	for k := range t.tuples {
+	for k := range t.Tuples {
 		keys = append(keys, k)
 	}
 	return keys
@@ -98,7 +98,7 @@ func (t *tupleImpl) GetString(name string) (val string, err error) {
 		return "", err
 	}
 	//try to coerce the tuple value to a string
-	v, err := coerce.ToString(t.tuples[name])
+	v, err := coerce.ToString(t.Tuples[name])
 
 	return v, err
 }
@@ -109,7 +109,7 @@ func (t *tupleImpl) GetInt(name string) (val int, err error) {
 		return 0, err
 	}
 	//try to coerce the tuple value to an integer
-	v, err := coerce.ToInt(t.tuples[name])
+	v, err := coerce.ToInt(t.Tuples[name])
 
 	return v, err
 }
@@ -120,7 +120,8 @@ func (t *tupleImpl) GetLong(name string) (val int64, err error) {
 		return 0, err
 	}
 	//try to coerce the tuple value to a long
-	v, err := coerce.ToInt64(t.tuples[name])
+	v, err := coerce.ToInt64(t.Tuples[name])
+
 
 	return v, err
 }
@@ -131,7 +132,7 @@ func (t *tupleImpl) GetDouble(name string) (val float64, err error) {
 		return 0, err
 	}
 	//try to coerce the tuple value to a double
-	v, err := coerce.ToFloat64(t.tuples[name])
+	v, err := coerce.ToFloat64(t.Tuples[name])
 
 	return v, err
 }
@@ -142,7 +143,7 @@ func (t *tupleImpl) GetBool(name string) (val bool, err error) {
 		return false, err
 	}
 	//try to coerce tuple value to a boolean
-	v, err := coerce.ToBool(t.tuples[name])
+	v, err := coerce.ToBool(t.Tuples[name])
 
 	return v, err
 }
@@ -174,8 +175,8 @@ func (t *tupleImpl) GetKey() TupleKey {
 }
 
 func (t *tupleImpl) initTuple(td *TupleDescriptor, values map[string]interface{}) (err error) {
-	t.tuples = make(map[string]interface{})
-	t.tupleType = TupleType(td.Name)
+	t.Tuples = make(map[string]interface{})
+	t.TupleType = TupleType(td.Name)
 	t.td = td
 
 	tk, err := NewTupleKey(TupleType(td.Name), values)
@@ -189,7 +190,7 @@ func (t *tupleImpl) initTuple(td *TupleDescriptor, values map[string]interface{}
 		if found {
 			coerced, err := coerce.ToType(val, tdp.PropType)
 			if err == nil {
-				t.tuples[tdp.Name] = coerced
+				t.Tuples[tdp.Name] = coerced
 			} else {
 				return err
 			}
@@ -202,8 +203,8 @@ func (t *tupleImpl) initTuple(td *TupleDescriptor, values map[string]interface{}
 }
 
 func (t *tupleImpl) initTupleWithKeyValues(td *TupleDescriptor, values ...interface{}) (err error) {
-	t.tuples = make(map[string]interface{})
-	t.tupleType = TupleType(td.Name)
+	t.Tuples = make(map[string]interface{})
+	t.TupleType = TupleType(td.Name)
 	t.td = td
 	tk, err := NewTupleKeyWithKeyValues(TupleType(td.Name), values...)
 	if err != nil {
@@ -212,7 +213,7 @@ func (t *tupleImpl) initTupleWithKeyValues(td *TupleDescriptor, values ...interf
 	t.key = tk
 	//populate the tuple key fields with the key values
 	for _, keyProp := range td.GetKeyProps() {
-		t.tuples[keyProp] = tk.GetValue(keyProp)
+		t.Tuples[keyProp] = tk.GetValue(keyProp)
 	}
 	return err
 }
@@ -227,8 +228,8 @@ func (t *tupleImpl) validateAndCallListener(ctx context.Context, name string, va
 	if err != nil {
 		return err
 	}
-	if t.tuples[name] != value {
-		t.tuples[name] = value
+	if t.Tuples[name] != value {
+		t.Tuples[name] = value
 		callChangeListener(ctx, t, name)
 	}
 	return nil
@@ -277,13 +278,13 @@ func (t *tupleImpl) isKeyProp(propName string) bool {
 }
 
 func (t *tupleImpl) GetMap() map[string]interface{} {
-	return t.tuples
+	return t.Tuples
 }
 
 func (t *tupleImpl) ToMap() map[string]interface{} {
 	m := make(map[string]interface{})
 	// Copy from the original map to the target map
-	for key, value := range t.tuples {
+	for key, value := range t.Tuples {
 		m[key] = value
 	}
 	return m
