@@ -42,8 +42,17 @@ func (jn *joinNodeImpl) initjoinNodeImplVar(nw *reteNetworkImpl, rule model.Rule
 	jn.leftIdrs = leftIdrs
 	jn.rightIdrs = rightIdrs
 	jn.conditionVar = conditionVar
-	jn.leftTable = nw.GetJtService().GetOrCreateJoinTable(nil, nw, rule, leftIdrs, "L_"+conditionVar.GetName())
-	jn.rightTable = nw.GetJtService().GetOrCreateJoinTable(nil, nw, rule, rightIdrs, "R_"+conditionVar.GetName())
+	lname := ""
+	rname := ""
+	if conditionVar != nil {
+		lname = "L_"+conditionVar.GetName()
+		rname = "R_"+conditionVar.GetName()
+	} else {
+		lname = rule.GetName() + "nil-L"
+		rname = rule.GetName() + "nil-R"
+	}
+	jn.leftTable = nw.GetJtService().GetOrCreateJoinTable(nil, nw, rule, leftIdrs, lname)
+	jn.rightTable = nw.GetJtService().GetOrCreateJoinTable(nil, nw, rule, rightIdrs, rname)
 	jn.setJoinIdentifiers()
 }
 
