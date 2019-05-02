@@ -2,9 +2,9 @@ package model
 
 import (
 	"fmt"
-	"github.com/TIBCOSoftware/flogo-lib/core/data"
 	"reflect"
 	"strings"
+	"github.com/project-flogo/core/data/coerce"
 )
 
 // TupleKey primary key of a tuple
@@ -43,7 +43,7 @@ func NewTupleKey(tupleType TupleType, values map[string]interface{}) (tupleKey T
 		if tdp.KeyIndex != -1 {
 			val, found := values[tdp.Name]
 			if found {
-				coerced, err := data.CoerceToValue(val, tdp.PropType)
+				coerced, err := coerce.ToType(val, tdp.PropType)
 				if err == nil {
 					tk.keys[tdp.Name] = coerced
 				} else {
@@ -85,14 +85,8 @@ func NewTupleKeyWithKeyValues(tupleType TupleType, values ...interface{}) (tuple
 
 	for i, keyProp := range td.GetKeyProps() {
 		tdp := td.GetProperty(keyProp)
-		var val interface{}
-		switch vt := values[0].(type) {
-		case map[string]interface{}:
-			val = vt[keyProp]
-		default:
-			val = values[i]
-		}
-		coerced, err := data.CoerceToValue(val, tdp.PropType)
+		val := values[i]
+		coerced, err := coerce.ToType(val, tdp.PropType)
 		if err == nil {
 			tk.keys[keyProp] = coerced
 		} else {
@@ -124,7 +118,7 @@ func (tk *tupleKeyImpl) keysAsString() string {
 		ky := tk.td.GetKeyProps()[i]
 		str = str + ky + ":"
 		val := tk.keys[ky]
-		strval, _ := data.CoerceToString(val)
+		strval, _ := coerce.ToString(val)
 		str += strval
 		if i < keysLen-1 {
 			str += ","
