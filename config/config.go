@@ -12,9 +12,9 @@ import (
 // RuleSessionDescriptor is a collection of rules to be loaded
 
 type RuleActionDescriptor struct {
-	Name       string               `json:"name"`
-	IOMetadata *metadata.IOMetadata `json:"metadata"`
-	Rules      []*RuleDescriptor    `json:"rules"`
+	Name string `json:"name"`
+	//IOMetadata *metadata.IOMetadata `json:"metadata"`
+	Rules []*RuleDescriptor `json:"rules"`
 }
 
 type RuleSessionDescriptor struct {

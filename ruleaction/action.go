@@ -24,16 +24,25 @@ const (
 	ivValues = "values"
 )
 
-var actionMetadata = action.ToMetadata(&Settings{})
+var actionMetadata = action.ToMetadata(&Settings{}, &Input{}, &Output{})
 
 var manager *config.ResourceManager
 
 //var resManager *config.ResManager
 
 type Settings struct {
-	RuleSessionURI string                  `json:"ruleSessionURI"`
-	TupleDescFile  string                  `json:"tupleDescriptorFile"`
-	Tds            []model.TupleDescriptor `json:"tds"`
+	RuleSessionURI string                  `md:"ruleSessionURI,required"`
+	TupleDescFile  string                  `md:"tupleDescriptorFile"`
+	Tds            []model.TupleDescriptor `md:"tds"`
+}
+
+type Input struct {
+	TupleType string `md:"tupletype,required"`
+	Values    string `md:values,required`
+}
+
+type Output struct {
+	OutputData interface{} `md:outputData`
 }
 
 func init() {
@@ -111,7 +120,7 @@ func (f *ActionFactory) New(cfg *action.Config) (action.Action, error) {
 		return nil, fmt.Errorf("failed to create rulesession for %s\n %s", settings.RuleSessionURI, err.Error())
 	}
 
-	ruleAction.ioMetadata = rsCfg.IOMetadata
+	//ruleAction.ioMetadata = rsCfg.IOMetadata
 
 	//start the rule session here, calls the startup rule function
 	err = ruleAction.rs.Start(nil)
@@ -121,8 +130,8 @@ func (f *ActionFactory) New(cfg *action.Config) (action.Action, error) {
 
 // RuleAction wraps RuleSession
 type RuleAction struct {
-	rs         model.RuleSession
-	ioMetadata *metadata.IOMetadata
+	rs model.RuleSession
+	//ioMetadata *metadata.IOMetadata
 }
 
 func (a *RuleAction) Metadata() *action.Metadata {
@@ -130,7 +139,7 @@ func (a *RuleAction) Metadata() *action.Metadata {
 }
 
 func (a *RuleAction) IOMetadata() *metadata.IOMetadata {
-	return a.ioMetadata
+	return actionMetadata.IOMetadata
 }
 
 // Run implements action.Action.Run

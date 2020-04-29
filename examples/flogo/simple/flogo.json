@@ -6,7 +6,7 @@
   "appModel": "1.0.0",
   "imports": [
     "github.com/project-flogo/contrib/trigger/rest",
-    "github.com/project-flogo/rules/ruleaction"
+    "github.com/balamg/rules/ruleaction@rulesdescriptorfix"
   ],
   "properties": [
     {
@@ -43,7 +43,7 @@
   ],
   "actions": [
     {
-      "ref": "github.com/project-flogo/rules/ruleaction",
+      "ref": "github.com/balamg/rules/ruleaction",
       "settings": {
         "ruleSessionURI": "res://rulesession:simple",
         "tds": [
@@ -76,24 +76,6 @@
     {
       "id": "rulesession:simple",
       "data": {
-        "metadata": {
-          "input": [
-            {
-              "name": "values",
-              "type": "string"
-            },
-            {
-              "name": "tupletype",
-              "type": "string"
-            }
-          ],
-          "output": [
-            {
-              "name": "outputData",
-              "type": "any"
-            }
-          ]
-        },
         "rules": [
           {
             "name": "n1.name == Bob",
