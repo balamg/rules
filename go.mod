@@ -1,4 +1,4 @@
-module github.com/project-flogo/rules
+module github.com/balamg/rules
 
 require (
 	github.com/aws/aws-sdk-go v1.30.12
