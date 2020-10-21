@@ -213,9 +213,9 @@ func (rs *rulesessionImpl) GetActionDataChannel() chan model.ActionData {
 	return rs.actionDataChan
 }
 
-func (rule *ruleImpl) SetFlowBasedAction(aScript string, ctx model.RuleContext) error {
+func (rule *ruleImpl) SetFlowBasedAction(ctx model.RuleContext) error {
 	rule.SetAction(FlogoTrigger)
-	rule.aScript = aScript
+	//rule.aScript = aScript
 	return nil
 }
 

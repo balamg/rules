@@ -68,16 +68,43 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 		if err != nil {
 			return err
 		}
-		ruleName := s.Rulename
+		name := s.Name
 
-		t.logger.Infof("Registering handler [%s]", ruleName)
+		rule := addRulesFromSettings(s.Name, s.Condition, s.Priority)
+		err = rs.AddRule(rule)
+		if err != nil {
+			return fmt.Errorf("ERROR during setting up rules: %s", err)
+		}
 
-		t.handlerMap[ruleName] = handler
+		t.logger.Infof("Added rule [%s]", name)
+
+		t.handlerMap[name] = handler
 	}
 
 	t.logger.Debugf("Configured on rulesession %d", t.settings.Rs)
 
 	return nil
+}
+
+func addRulesFromSettings(name string, condition string, priority int) model.Rule {
+	rule := ruleapi.NewRule(name)
+	rule.SetContext("This is a test of context")
+	rule.SetFlowBasedAction(nil)
+	rule.SetPriority(priority)
+	rule.AddExprCondition(condition, condition, nil)
+
+	//	//now add explicit rule identifiers if any
+	//	if ruleCfg.Identifiers != nil {
+	//		idrs := []model.TupleType{}
+	//		for _, idr := range ruleCfg.Identifiers {
+	//			idrs = append(idrs, model.TupleType(idr))
+	//		}
+	//		rule.AddIdrsToRule(idrs)
+	//	}
+	//
+	//	rs.AddRule(rule)
+	//}
+	return rule
 }
 
 func (t *Trigger) Start() error {

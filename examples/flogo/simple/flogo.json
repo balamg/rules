@@ -56,7 +56,8 @@
       "handlers": [
         {
           "settings": {
-            "rulename": "bob"
+            "name": "bob",
+            "condition" : "$.n1.name == 'Bob'"
           },
           "action": {
             "ref": "#flow",
@@ -73,7 +74,8 @@
         },
         {
           "settings": {
-            "rulename": "samenames"
+            "name": "samenames",
+            "condition" : "$.n1.name == $.n2.name"
           },
           "action": {
             "ref": "#flow",
@@ -145,22 +147,7 @@
           ]
         },
         "rules": [
-          {
-            "name": "bob",
-            "conditions": [
-              {
-                "expression" : "$.n1.name == 'Bob'"
-              }
-            ]
-          },
-          {
-            "name": "samenames",
-            "conditions": [
-              {
-                "expression" : "$.n1.name == $.n2.name"
-              }
-            ]
-          }
+
         ]
       }
     },

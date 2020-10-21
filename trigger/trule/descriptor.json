@@ -45,6 +45,12 @@
         "type": "string",
         "required" : true,
         "description": "handler for this rule"
+      },
+      {
+        "name": "condition",
+        "type": "string",
+        "required" : true,
+        "description": "rule condition"
       }
     ]
   }

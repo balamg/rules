@@ -31,7 +31,7 @@ type MutableRule interface {
 	//will try to coerce value to the named property's type
 	//SetValue(ctx context.Context, name string, value interface{}) error
 	//SetValues(ctx context.Context, values map[string]interface{}) error
-	SetFlowBasedAction(flowId string, ctx RuleContext) error
+	SetFlowBasedAction(ctx RuleContext) error
 }
 
 //Condition interface to maintain/get various condition properties

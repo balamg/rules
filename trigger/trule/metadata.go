@@ -9,7 +9,9 @@ type Settings struct {
 }
 
 type HandlerSettings struct {
-	Rulename string `md:"rulename,required"` // handler for this rule
+	Name      string `md:"name,required"` // handler for this rule
+	Condition string `md:"condition,required"`
+	Priority  int    `md:"priority"`
 }
 
 type Output struct {
