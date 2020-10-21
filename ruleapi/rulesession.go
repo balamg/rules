@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -56,7 +55,7 @@ func GetOrCreateRuleSessionFromConfig(name string, jsonConfig string) (model.Rul
 	for _, ruleCfg := range ruleSessionDescriptor.Rules {
 		rule := NewRule(ruleCfg.Name)
 		rule.SetContext("This is a test of context")
-		if strings.HasPrefix(ruleCfg.ActionFuncId, "res://flow:") {
+		if ruleCfg.ActionFuncId == "" {
 			rule.SetAction(FlogoTrigger)
 		} else {
 			rule.SetAction(ruleCfg.ActionFunc)
