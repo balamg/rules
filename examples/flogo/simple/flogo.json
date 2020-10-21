@@ -6,7 +6,14 @@
   "appModel": "1.0.0",
   "imports": [
     "github.com/project-flogo/contrib/trigger/rest",
-    "github.com/project-flogo/rules/ruleaction"
+    "github.com/project-flogo/rules/ruleaction",
+    "github.com/project-flogo/contrib/activity/log",
+    "github.com/project-flogo/contrib/trigger/rest",
+    "github.com/project-flogo/flow",
+    "github.com/project-flogo/contrib/function/string",
+    "github.com/project-flogo/rules/trigger/trule",
+    "github.com/project-flogo/contrib/activity/actreturn"
+
   ],
   "properties": [
     {
@@ -37,6 +44,49 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "handlerules",
+      "ref": "github.com/project-flogo/rules/trigger/trule",
+      "settings": {
+        "rs": "res://rulesession:simple"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "rulename": "bob"
+          },
+          "action": {
+            "ref": "#flow",
+            "settings": {
+              "flowURI": "res://flow:rule_bob"
+            },
+            "input": {
+              "rs": "=$.rs",
+              "ctx": "=$.ctx",
+              "rulename": "=$.rulename",
+              "tuples": "=$.tuples"
+            }
+          }
+        },
+        {
+          "settings": {
+            "rulename": "samenames"
+          },
+          "action": {
+            "ref": "#flow",
+            "settings": {
+              "flowURI": "res://flow:rule_samenames"
+            },
+            "input": {
+              "rs": "=$.rs",
+              "ctx": "=$.ctx",
+              "rulename": "=$.rulename",
+              "tuples": "=$.tuples"
+            }
+          }
         }
       ]
     }
@@ -96,28 +146,22 @@
         },
         "rules": [
           {
-            "name": "n1.name == Bob",
+            "name": "bob",
             "conditions": [
               {
                 "expression" : "$.n1.name == 'Bob'"
               }
             ],
-            "actionFunction": "checkForBobAction"
+            "actionFunction": "res://flow:rule_bob"
           },
           {
-            "name": "n1.name == Bob \u0026\u0026 n1.name == n2.name",
+            "name": "samenames",
             "conditions": [
               {
-                "identifiers": [
-                  "n1"
-                ],
-                "evaluator": "checkForBob"
-              },
-              {
-                "expression" : "($.n1.name == 'Bob') \u0026\u0026 ($.n1.name == $.n2.name)"
+                "expression" : "$.n1.name == $.n2.name"
               }
             ],
-            "actionFunction": "checkSameNamesAction"
+            "actionFunction": "res://flow:rule_samenames"
           },
           {
             "name": "env variable example",
@@ -139,6 +183,98 @@
               }
             ],
             "actionFunction": "propertyExampleAction"
+          }
+        ]
+      }
+    },
+    {
+      "id": "flow:rule_bob",
+      "data": {
+        "name": "LogTempEvent",
+        "metadata": {
+          "input": [
+            {
+              "name": "rs",
+              "type": "string"
+            },
+            {
+              "name": "ctx",
+              "type": "string"
+            },
+            {
+              "name": "rulename",
+              "type": "string"
+            },
+            {
+              "name": "tuples",
+              "type": "object"
+            }
+          ],
+          "output": [
+            {
+              "name": "anOutput",
+              "type": "string"
+            }
+          ]
+        },
+        "tasks": [
+          {
+            "id": "log3",
+            "name": "log3",
+            "description": "log tuples",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "message": "=string.concat( \"BOB_RS:\",$flow.rs, \"RN:\",$flow.rulename, \"CTX:\", $flow.ctx, \"TPL:\", $flow.tuples )",
+                "details": "true"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "flow:rule_samenames",
+      "data": {
+        "name": "LogTempEvent",
+        "metadata": {
+          "input": [
+            {
+              "name": "rs",
+              "type": "string"
+            },
+            {
+              "name": "ctx",
+              "type": "string"
+            },
+            {
+              "name": "rulename",
+              "type": "string"
+            },
+            {
+              "name": "tuples",
+              "type": "object"
+            }
+          ],
+          "output": [
+            {
+              "name": "anOutput",
+              "type": "string"
+            }
+          ]
+        },
+        "tasks": [
+          {
+            "id": "log3",
+            "name": "log3",
+            "description": "log tuples",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "message": "=string.concat( \"SAMENAMES_RS:\",$flow.rs, \"RN:\",$flow.rulename, \"CTX:\", $flow.ctx, \"TPL:\", $flow.tuples )",
+                "details": "true"
+              }
+            }
           }
         ]
       }

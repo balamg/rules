@@ -1,0 +1,51 @@
+{
+  "name": "flogo-trule",
+  "type": "flogo:trigger",
+  "version": "0.10.0",
+  "title": "Handle Rule Actions",
+  "description": "Handles Rule Actions",
+  "homepage": "https://github.com/project-flogo/rules/trigger/trule",
+  "settings": [
+    {
+      "name": "rs",
+      "type": "string",
+      "required": true,
+      "description": "Rule session"
+    }
+  ],
+  "output": [
+    {
+      "name": "rs",
+      "type": "string",
+      "description": "Rule session"
+    },
+    {
+      "name": "ctx",
+      "type": "string",
+      "description": "context.Context reference"
+    },
+    {
+      "name": "rulename",
+      "type": "string",
+      "description": "rule that fired"
+    },
+    {
+      "name": "tuples",
+      "type": "object",
+      "description": "matching tuples"
+    }
+  ],
+  "reply": [
+
+  ],
+  "handler": {
+    "settings": [
+      {
+        "name": "rulename",
+        "type": "string",
+        "required" : true,
+        "description": "handler for this rule"
+      }
+    ]
+  }
+}

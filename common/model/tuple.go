@@ -37,8 +37,8 @@ type MutableTuple interface {
 	//SetDatetime(ctx context.Context, name string, value time.Time) (err error)
 
 	//will try to coerce value to the named property's type
-	SetValue(ctx context.Context, name string, value interface{}) (err error)
-	//SetValues(ctx context.Context, values map[string]interface{}) (err error)
+	//SetValue(ctx context.Context, name string, value interface{}) (err error)
+	SetValues(ctx context.Context, values map[string]interface{}) (err error)
 }
 
 type tupleImpl struct {
@@ -277,4 +277,28 @@ func (t *tupleImpl) isKeyProp(propName string) bool {
 
 func (t *tupleImpl) GetMap() map[string]interface{} {
 	return t.tuples
+}
+func (t *tupleImpl) SetValues(ctx context.Context, values map[string]interface{}) error {
+	keyProps := t.GetKey().GetProps()
+	keyPropMap := map[string]bool{}
+	for _, kp := range keyProps {
+		keyPropMap[kp] = true
+	}
+	props := t.GetProperties()
+	propMap := map[string]bool{}
+	for _, p := range props {
+		propMap[p] = true
+	}
+
+	for k, v := range values {
+		if _, found := propMap[k]; found {
+			if _, found2 := keyPropMap[k]; !found2 {
+				err := t.SetValue(ctx, k, v)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }

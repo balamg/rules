@@ -28,6 +28,10 @@ type MutableRule interface {
 	SetContext(ctx RuleContext)
 	AddExprCondition(conditionName string, cExpr string, ctx RuleContext) error
 	AddIdrsToRule(idrs []TupleType)
+	//will try to coerce value to the named property's type
+	//SetValue(ctx context.Context, name string, value interface{}) error
+	//SetValues(ctx context.Context, values map[string]interface{}) error
+	SetFlowBasedAction(flowId string, ctx RuleContext) error
 }
 
 //Condition interface to maintain/get various condition properties
@@ -76,6 +80,7 @@ type RuleSession interface {
 
 	//replay existing tuples into a rule
 	ReplayTuplesForRule(ruleName string) (err error)
+	GetActionDataChannel() chan ActionData
 }
 
 //ConditionEvaluator is a function pointer for handling condition evaluations on the server side
@@ -107,3 +112,11 @@ type RtcModified interface {
 }
 
 type RtcTransactionHandler func(ctx context.Context, rs RuleSession, txn RtcTxn, txnContext interface{})
+
+type ActionData struct {
+	RuleSession RuleSession
+	Context     context.Context
+	RuleName    string
+	Tuples      map[TupleType]Tuple
+	Done        chan bool
+}

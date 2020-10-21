@@ -23,11 +23,12 @@ type RuleSessionDescriptor struct {
 
 // RuleDescriptor defines a rule
 type RuleDescriptor struct {
-	Name        string
-	Conditions  []*ConditionDescriptor
-	ActionFunc  model.ActionFunction
-	Priority    int
-	Identifiers []string
+	Name         string
+	Conditions   []*ConditionDescriptor
+	ActionFunc   model.ActionFunction
+	ActionFuncId string
+	Priority     int
+	Identifiers  []string
 }
 
 // ConditionDescriptor defines a condition in a rule
@@ -53,7 +54,7 @@ func (c *RuleDescriptor) UnmarshalJSON(d []byte) error {
 
 	c.Name = ser.Name
 	c.Conditions = ser.Conditions
-	c.ActionFunc = GetActionFunction(ser.ActionFuncId)
+	c.ActionFuncId = ser.ActionFuncId
 	c.Priority = ser.Priority
 	c.Identifiers = ser.Identifiers
 
@@ -82,8 +83,8 @@ func (c *RuleDescriptor) MarshalJSON() ([]byte, error) {
 	buffer.Truncate(buffer.Len() - 1)
 	buffer.WriteString("],")
 
-	actionFunctionID := GetActionFunctionID(c.ActionFunc)
-	buffer.WriteString("\"actionFunction\":\"" + actionFunctionID + "\",")
+	//actionFunctionID := GetActionFunctionID(c.ActionFunc)
+	buffer.WriteString("\"actionFunction\":\"" + c.ActionFuncId + "\",")
 	buffer.WriteString("\"priority\":" + strconv.Itoa(c.Priority) + "}")
 
 	return buffer.Bytes(), nil

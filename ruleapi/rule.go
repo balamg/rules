@@ -16,6 +16,8 @@ type ruleImpl struct {
 	priority    int
 	deps        map[model.TupleType]map[string]bool
 	ctx         model.RuleContext
+	aScript     string //can be a python script or a Flogo Flow
+
 }
 
 func (rule *ruleImpl) GetContext() model.RuleContext {

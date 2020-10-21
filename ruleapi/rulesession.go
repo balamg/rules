@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,6 +25,9 @@ type rulesessionImpl struct {
 	timers    map[interface{}]*time.Timer
 	startupFn model.StartupRSFunction
 	started   bool
+
+	//for Flogo
+	actionDataChan chan model.ActionData
 }
 
 func GetOrCreateRuleSession(name string) (model.RuleSession, error) {
@@ -52,7 +56,12 @@ func GetOrCreateRuleSessionFromConfig(name string, jsonConfig string) (model.Rul
 	for _, ruleCfg := range ruleSessionDescriptor.Rules {
 		rule := NewRule(ruleCfg.Name)
 		rule.SetContext("This is a test of context")
-		rule.SetAction(ruleCfg.ActionFunc)
+		if strings.HasPrefix(ruleCfg.ActionFuncId, "res://flow:") {
+			rule.SetAction(FlogoTrigger)
+		} else {
+			rule.SetAction(ruleCfg.ActionFunc)
+		}
+		//rule.SetAction(ruleCfg.ActionFunc)
 		rule.SetPriority(ruleCfg.Priority)
 
 		for _, condCfg := range ruleCfg.Conditions {
@@ -84,6 +93,8 @@ func (rs *rulesessionImpl) initRuleSession(name string) {
 	rs.name = name
 	rs.timers = make(map[interface{}]*time.Timer)
 	rs.started = false
+	rs.actionDataChan = make(chan model.ActionData)
+
 }
 
 func (rs *rulesessionImpl) AddRule(rule model.Rule) (err error) {
@@ -189,4 +200,46 @@ func (rs *rulesessionImpl) RegisterRtcTransactionHandler(txnHandler model.RtcTra
 
 func (rs *rulesessionImpl) ReplayTuplesForRule(ruleName string) (err error) {
 	return rs.reteNetwork.ReplayTuplesForRule(ruleName, rs)
+}
+
+func GetRuleSession(name string) model.RuleSession {
+	existingRs, ok := sessionMap.Load(name)
+	if !ok {
+		return nil
+	}
+	rs := existingRs.(*rulesessionImpl)
+	return rs
+}
+func (rs *rulesessionImpl) GetActionDataChannel() chan model.ActionData {
+	return rs.actionDataChan
+}
+
+func (rule *ruleImpl) SetFlowBasedAction(aScript string, ctx model.RuleContext) error {
+	rule.SetAction(FlogoTrigger)
+	rule.aScript = aScript
+	return nil
+}
+
+func FlogoTrigger(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
+	//if rule := rs.GetRule(ruleName); rule != nil {
+	//	rImpl := rule.(*ruleImpl)
+	//	//todo add rule context?
+	//	flowMap := map[string]interface{}{"ruleName": ruleName}
+	//	err, _ := ExecuteFlowAction(ctx, rs, rImpl.aScript, tuples, flowMap)
+	//	if err != nil {
+	//		fmt.Printf("[%s]\n", err)
+	//	}
+	//}
+	actionData := model.ActionData{
+		RuleSession: rs,
+		Context:     ctx,
+		RuleName:    ruleName,
+		Tuples:      tuples,
+		Done:        make(chan bool),
+	}
+
+	//post to channel
+	rs.GetActionDataChannel() <- actionData
+	//wait for action to complete
+	<-actionData.Done
 }
