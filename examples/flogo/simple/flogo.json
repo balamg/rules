@@ -39,8 +39,7 @@
             {
               "id": "simple_rule",
               "input": {
-                "tupletype": "=$.pathParams.tupleType",
-                "values": "=$.queryParams"
+                "tupletype": "=$.pathParams.tupleType"
               }
             }
           ]
@@ -57,7 +56,8 @@
         {
           "settings": {
             "name": "bob",
-            "condition" : "$.n1.name == 'Bob'"
+            "condition" : "$.n1.name == 'Bob'",
+            "priority" : 1
           },
           "action": {
             "ref": "#flow",
@@ -75,7 +75,8 @@
         {
           "settings": {
             "name": "samenames",
-            "condition" : "$.n1.name == $.n2.name"
+            "condition" : "$.n1.name == $.n2.name",
+            "priority" : 2
           },
           "action": {
             "ref": "#flow",

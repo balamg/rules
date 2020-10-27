@@ -93,6 +93,17 @@ func addRulesFromSettings(name string, condition string, priority int) model.Rul
 	rule.SetPriority(priority)
 	rule.AddExprCondition(condition, condition, nil)
 
+	/*
+		state-machine=SM1
+		initial-state: S1
+
+		state S1, condition: C1 next: S2, timeout: T1, timeout-state:S3
+
+	*/
+
+	//rule.AddExprCondition("x", "$.sm1.state == S1 && C1")
+	//rule.SetAction(setNextState)
+
 	//	//now add explicit rule identifiers if any
 	//	if ruleCfg.Identifiers != nil {
 	//		idrs := []model.TupleType{}
@@ -106,6 +117,18 @@ func addRulesFromSettings(name string, condition string, priority int) model.Rul
 	//}
 	return rule
 }
+
+//
+//func setNextState(ctx context.Context, session model.RuleSession, s string, m map[model.TupleType]model.Tuple, context model.RuleContext) {
+//	//get the name of the sm-type from ruleCtx
+//	var t model.StateMachine
+//	t, ok := m["sm-name"].(model.StateMachine)
+//	if ok {
+//		t.CancelTimer()
+//	}
+//	t.SetState(nextState)
+//	t.SetTimer(forNextState)
+//}
 
 func (t *Trigger) Start() error {
 	fmt.Printf("STARTED\n")

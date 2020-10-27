@@ -120,3 +120,10 @@ type ActionData struct {
 	Tuples      map[TupleType]Tuple
 	Done        chan bool
 }
+
+type StateMachine interface {
+	MutableTuple
+	CancelTimer()
+	SetTimer()
+	Start()
+}
