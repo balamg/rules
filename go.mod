@@ -2,6 +2,7 @@ module github.com/project-flogo/rules
 
 require (
 	github.com/aws/aws-sdk-go v1.30.12
+	github.com/ghodss/yaml v1.0.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/oklog/ulid v1.3.1
 	github.com/project-flogo/contrib/activity/actreturn v0.10.0

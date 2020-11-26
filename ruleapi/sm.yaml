@@ -1,0 +1,35 @@
+- name: sm1
+  descriptor:
+    name: sm1
+    properties:
+      - name: p1
+        type: string
+  initial-state: s1
+  end-state: e1
+  states:
+    - state: s1
+      entry-action: a1
+      exit-action: a2
+      timeout: -1
+      timeout-state: s2
+      transitions:
+#        - condition: "$.sm1.sm_state == 's1'"
+        - condition: "true"
+          to-state: s2
+          entry-action: a1
+          exit-action:
+          timeout: 10
+          timeout-state: t1
+    - state: s2
+      entry-action: a1
+      exit-action: a2
+      timeout: -1
+      timeout-state: s2
+      transitions:
+        #        - condition: "$.sm1.sm_state == 's1'"
+        - condition: "true"
+          to-state: e1
+          entry-action: a1
+          exit-action:
+          timeout: 10
+          timeout-state: t1
