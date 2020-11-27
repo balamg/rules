@@ -10,18 +10,18 @@
     - state: s1
       entry-action: a1
       exit-action: a2
-      timeout: 10
+      timeout: 3
       timeout-state: s2
 #      transitions:
 #        - condition: "true"
 #          to-state: s2
 #          entry-action: a1
 #          exit-action:
-#    - state: s2
-#      entry-action: a1
-#      exit-action: a2
-#      timeout: -1
-#      timeout-state: s2
+    - state: s2
+      entry-action: a1
+      exit-action: a2
+      timeout: 4
+      timeout-state: s1
 #      transitions:
 #        - condition: "true"
 #          to-state: e1

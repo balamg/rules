@@ -99,6 +99,13 @@ func (smCtx *SmTimeoutActionContext) TimeoutAction(ctx context.Context, rs model
 	fmt.Printf("setting sm[%s] to next state [%s] from state [%s]\n",
 		smt.GetKey().String(), smCtx.sm.TimeoutState, smt.GetState())
 	smt.SetState(ctx, smCtx.sm.TimeoutState)
+	timerEvent := tuples[model.TupleType("timer")]
+	if timerEvent == nil {
+		fmt.Printf("timer event not found\n")
+		return
+	}
+	rs.Delete(ctx, timerEvent)
+
 	_ = startTimeoutForCurrentState(smt, rs)
 }
 
