@@ -10,26 +10,20 @@
     - state: s1
       entry-action: a1
       exit-action: a2
-      timeout: -1
+      timeout: 10
       timeout-state: s2
-      transitions:
-#        - condition: "$.sm1.sm_state == 's1'"
-        - condition: "true"
-          to-state: s2
-          entry-action: a1
-          exit-action:
-          timeout: 10
-          timeout-state: t1
-    - state: s2
-      entry-action: a1
-      exit-action: a2
-      timeout: -1
-      timeout-state: s2
-      transitions:
-        #        - condition: "$.sm1.sm_state == 's1'"
-        - condition: "true"
-          to-state: e1
-          entry-action: a1
-          exit-action:
-          timeout: 10
-          timeout-state: t1
+#      transitions:
+#        - condition: "true"
+#          to-state: s2
+#          entry-action: a1
+#          exit-action:
+#    - state: s2
+#      entry-action: a1
+#      exit-action: a2
+#      timeout: -1
+#      timeout-state: s2
+#      transitions:
+#        - condition: "true"
+#          to-state: e1
+#          entry-action: a1
+#          exit-action:

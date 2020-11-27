@@ -1,6 +1,8 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/ghodss/yaml"
 	"github.com/project-flogo/core/data"
 )
@@ -11,6 +13,8 @@ type StateMachineModel struct {
 	InitialState string          `json:"initial-state"`
 	States       []SmState       `json:"states"`
 	EndState     string          `json:"end-state"`
+
+	stateMap map[string]*SmState
 }
 type SmState struct {
 	State        string         `json:"state"`
@@ -70,7 +74,22 @@ func (s *StateMachineModel) UnmarshalJSON(d []byte) error {
 		KeyIndex: -1,
 	}
 	s.Descriptor.Props = append(s.Descriptor.Props, stateProp)
+
+	s.stateMap = map[string]*SmState{}
+
+	for i := range s.States {
+		smst := &s.States[i]
+		_, found := s.stateMap[smst.State]
+		if found {
+			return fmt.Errorf("duplicate state entry found [%s]", smst.State)
+		}
+		s.stateMap[smst.State] = smst
+	}
 	return nil
+}
+
+func (s *StateMachineModel) GetSmForState(state string) *SmState {
+	return s.stateMap[state]
 }
 
 func RegisterSmTypes(sms []StateMachineModel) error {
@@ -81,5 +100,29 @@ func RegisterSmTypes(sms []StateMachineModel) error {
 			return err
 		}
 	}
+	err := registerTimerType()
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+func registerTimerType() error {
+	td := TupleDescriptor{
+		Name:         "timer",
+		TTLInSeconds: 0,
+		Props: []TuplePropertyDescriptor{
+			{
+				Name:     "ctime",
+				PropType: data.TypeInt,
+				KeyIndex: 0,
+			},
+			{
+				Name:     "ctx",
+				PropType: data.TypeString,
+				KeyIndex: -1,
+			},
+		},
+	}
+	return RegisterTupleDescriptorsFromTds([]TupleDescriptor{td})
 }

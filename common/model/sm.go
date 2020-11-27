@@ -8,7 +8,25 @@ import (
 
 type stateMachineImpl struct {
 	tupleImpl
-	sm *StateMachineModel
+	sm           *StateMachineModel
+	started      bool
+	timeoutTimer *time.Timer
+}
+
+func (s *stateMachineImpl) GetStateTimeoutTimer() *time.Timer {
+	return s.timeoutTimer
+}
+
+func (s *stateMachineImpl) SetStateTimeoutTimer(timer *time.Timer) {
+	s.timeoutTimer = timer
+}
+
+func (s *stateMachineImpl) SetStarted(started bool) {
+	s.started = started
+}
+
+func (s *stateMachineImpl) IsStarted() bool {
+	return s.started
 }
 
 func NewStateMachineTuple(smc StateMachineModel, values map[string]interface{}) (StateMachineTuple, error) {

@@ -1,6 +1,9 @@
 package model
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type StateMachineTuple interface {
 	MutableTuple
@@ -11,4 +14,8 @@ type StateMachineTuple interface {
 	GetState() string
 	//SetStateMachine(sm *StateMachineModel)
 	GetStateMachine() *StateMachineModel
+	IsStarted() bool
+	SetStarted(started bool)
+	GetStateTimeoutTimer() *time.Timer
+	SetStateTimeoutTimer(timer *time.Timer)
 }

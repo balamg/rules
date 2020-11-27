@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/project-flogo/rules/common/model"
 
@@ -68,9 +69,17 @@ func Test_SM(t *testing.T) {
 		fmt.Printf("%s", err)
 		t.FailNow()
 	}
-	err = rs.Assert(context.TODO(), smt)
+
+	//err = rs.Assert(context.TODO(), smt)
+	//if err != nil {
+	//	fmt.Printf("%s", err)
+	//	t.FailNow()
+	//}
+	err = StartSm(context.TODO(), rs, smt)
 	if err != nil {
 		fmt.Printf("%s", err)
 		t.FailNow()
 	}
+
+	time.Sleep(20 * time.Second)
 }

@@ -3,6 +3,7 @@ package ruleapi
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/project-flogo/rules/common/model"
 )
@@ -33,7 +34,7 @@ func CreateRulesForState(smName string, sm model.SmState) ([]model.Rule, error) 
 		ruleName := fmt.Sprintf("%s_%s_%s", sm.State, condition, smTrans.ToState)
 
 		rule := NewRule(ruleName)
-		sa := SmActionContext{name: smName, condition: condition, smTrans: &smTrans}
+		sa := SmActionContext{name: smName, smTrans: &smTrans}
 		rule.SetContext(&sa)
 		rule.SetAction(sa.setSmTransitionAction)
 
@@ -49,38 +50,73 @@ func CreateRulesForState(smName string, sm model.SmState) ([]model.Rule, error) 
 		rule.SetPriority(1)
 		rules = append(rules, rule)
 	}
-
-	//ruleName := fmt.Sprintf("%s_timeout", sm.State)
-	//
-	//rule := NewRule(ruleName)
-	//rule.AddExprCondition("timeout", "$.timer['v1'] == ..", nil)
-	//smt := &SmTimeoutActionContext{&sm}
-	//rule.SetAction(smt.TimeoutAction)
+	if sm.Timeout > 0 {
+		timeoutRule, err := setTimeoutRuleForState(smName, sm)
+		if err != nil {
+			return rules, err
+		}
+		rules = append(rules, timeoutRule)
+	}
 	return rules, nil
 }
 
-func (smt *SmTimeoutActionContext) TimeoutAction(ctx context.Context, session model.RuleSession, s string, m map[model.TupleType]model.Tuple, ruleContext model.RuleContext) {
-	//todo:
-	//get the sm tuple
-	//and set its state to next state
-	//smt.sm.TimeoutState
+func setTimeoutRuleForState(smName string, state model.SmState) (model.Rule, error) {
+	ruleName := fmt.Sprintf("%s_%s_timeout", smName, state.State)
+	rule := NewRule(ruleName)
+
+	//$.sm1.sm_state == 's1'
+	currStateCondition := fmt.Sprintf("$.%s.sm_state == '%s'", smName, state.State)
+	err := rule.AddExprCondition(currStateCondition, currStateCondition, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	//$.sm1.sm_key == $.timer.ctx
+	matchKeyExpr := fmt.Sprintf("$.%s.sm_key == $.timer.ctx", smName)
+	err = rule.AddExprCondition(matchKeyExpr, matchKeyExpr, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	smt := &SmTimeoutActionContext{smName, &state}
+	rule.SetAction(smt.TimeoutAction)
+	return rule, nil
+}
+
+func (smCtx *SmTimeoutActionContext) TimeoutAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
+	smTuple := tuples[model.TupleType(smCtx.name)]
+	if smTuple == nil {
+		fmt.Printf("sm not found %s", smCtx.name)
+		return
+	}
+
+	smt, ok := smTuple.(model.StateMachineTuple)
+	if !ok {
+		fmt.Printf("%s not of type statemachinetuple", smCtx.name)
+		return
+	}
+
+	fmt.Printf("setting sm[%s] to next state [%s] from state [%s]\n",
+		smt.GetKey().String(), smCtx.sm.TimeoutState, smt.GetState())
+	smt.SetState(ctx, smCtx.sm.TimeoutState)
+	_ = startTimeoutForCurrentState(smt, rs)
 }
 
 type SmTimeoutActionContext struct {
-	sm *model.SmState
+	name string
+	sm   *model.SmState
 }
 type SmActionContext struct {
-	name      string
-	condition string
-	smTrans   *model.SmTransition
+	name    string
+	smTrans *model.SmTransition
 }
 
-func (sm *SmActionContext) setSmTransitionAction(ctx context.Context, session model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
-	smCtx, ok := ruleCtx.(*SmActionContext)
-	if !ok {
-		fmt.Printf("incorrect rule context type")
-		return
-	}
+func (smCtx *SmActionContext) setSmTransitionAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
+	//smCtx, ok := ruleCtx.(*SmActionContext)
+	//if !ok {
+	//	fmt.Printf("incorrect rule context type")
+	//	return
+	//}
 
 	smTuple := tuples[model.TupleType(smCtx.name)]
 	if smTuple == nil {
@@ -97,18 +133,55 @@ func (sm *SmActionContext) setSmTransitionAction(ctx context.Context, session mo
 	fmt.Printf("setting sm[%s] to next state [%s] from state [%s]\n",
 		smt.GetKey().String(), smCtx.smTrans.ToState, smt.GetState())
 	smt.SetState(ctx, smCtx.smTrans.ToState)
+	_ = startTimeoutForCurrentState(smt, rs)
 }
 
-//func (s *stateMachineImpl) Start() {
-//	if s.isStarted {
-//		return
-//	}
-//	s.currentState = s.sm.InitialState
-//	s.timer = time.NewTimer(time.Duration(s.sm.States[s.currentState].Timeout) * time.Millisecond)
-//	go func() {
-//		<-s.timer.C
-//		//todo: assert a time event!
-//		//set timer keys, there will be a rule which matches and changes the state to timeout state
-//	}()
-//	s.isStarted = true
-//}
+func StartSm(ctx context.Context, rs model.RuleSession, s model.StateMachineTuple) error {
+	if s.IsStarted() {
+		return nil
+	}
+	_ = startTimeoutForCurrentState(s, rs)
+
+	err := rs.Assert(ctx, s)
+	if err != nil {
+		return err
+	}
+	s.SetStarted(true)
+	return nil
+}
+
+//to be called right after changing state to nextState
+func startTimeoutForCurrentState(s model.StateMachineTuple, rs model.RuleSession) error {
+	timer := s.GetStateTimeoutTimer()
+	if timer != nil {
+		timer.Stop()
+	}
+	smm := s.GetStateMachine()
+	stt := smm.GetSmForState(s.GetState())
+	if stt == nil {
+		fmt.Printf("state transitions not found for state [%s]\n", s.GetState())
+		return nil
+	}
+	timeout := stt.Timeout
+	if timeout > 0 {
+		timer = time.NewTimer(time.Duration(timeout) * time.Second)
+		s.SetStateTimeoutTimer(timer)
+
+		go func() {
+			<-timer.C
+			vals := s.GetMap()["sm_key"].(string)
+			assertTimerTuple(rs, vals)
+		}()
+	}
+	return nil
+}
+
+func assertTimerTuple(rs model.RuleSession, smKey string) {
+	now := time.Now().UnixNano()
+
+	timer, _ := model.NewTupleWithKeyValues("timer", now)
+	_ = timer.SetString(context.TODO(), "ctx", smKey)
+
+	_ = rs.Assert(context.TODO(), timer)
+
+}
