@@ -8,8 +8,7 @@ import (
 )
 
 type StateMachineModel struct {
-	Name         string          `json:"name"`
-	Descriptor   TupleDescriptor `json:"descriptor"`
+	Descriptor   TupleDescriptor `json:"state-machine"`
 	InitialState string          `json:"initial-state"`
 	States       []SmState       `json:"states"`
 	EndState     string          `json:"end-state"`
@@ -36,8 +35,7 @@ type SmTransition struct {
 
 func (s *StateMachineModel) UnmarshalJSON(d []byte) error {
 	ser := &struct {
-		Name         string          `json:"name"`
-		Descriptor   TupleDescriptor `json:"descriptor"`
+		Descriptor   TupleDescriptor `json:"state-machine"`
 		InitialState string          `json:"initial-state"`
 		States       []SmState       `json:"states"`
 		EndState     string          `json:"end-state"`
@@ -47,7 +45,6 @@ func (s *StateMachineModel) UnmarshalJSON(d []byte) error {
 		return err
 	}
 
-	s.Name = ser.Name
 	s.InitialState = ser.InitialState
 	s.EndState = ser.EndState
 	s.States = ser.States

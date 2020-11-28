@@ -1,29 +1,23 @@
-- name: sm1
-  descriptor:
+- state-machine:
     name: sm1
     properties:
       - name: p1
         type: string
   initial-state: s1
-  end-state: e1
   states:
     - state: s1
       entry-action: a1
       exit-action: a2
-      timeout: 3
+      timeout: 5
       timeout-state: s2
-#      transitions:
-#        - condition: "true"
-#          to-state: s2
-#          entry-action: a1
-#          exit-action:
+#     transitions:
+#       - condition: "true"
+#         to-state: s2
     - state: s2
       entry-action: a1
       exit-action: a2
-      timeout: 4
+      timeout: 2
       timeout-state: s1
-#      transitions:
-#        - condition: "true"
-#          to-state: e1
-#          entry-action: a1
-#          exit-action:
+#     transitions:
+#       - condition: "true"
+#         to-state: e1

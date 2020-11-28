@@ -12,7 +12,7 @@ func CreateRulesForSm(sm model.StateMachineModel) ([]model.Rule, error) {
 	var rules []model.Rule
 
 	for i := range sm.States {
-		rls, err := CreateRulesForState(sm.Name, sm.States[i])
+		rls, err := CreateRulesForState(sm.Descriptor.Name, sm.States[i])
 		if err != nil {
 			return nil, err
 		}

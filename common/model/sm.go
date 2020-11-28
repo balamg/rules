@@ -35,7 +35,7 @@ func NewStateMachineTuple(smc StateMachineModel, values map[string]interface{}) 
 		valsNew[k] = v
 	}
 	valsNew["sm_state"] = smc.InitialState
-	tupleImplI, err := NewTuple(TupleType(smc.Name), valsNew)
+	tupleImplI, err := NewTuple(TupleType(smc.Descriptor.Name), valsNew)
 	if err != nil {
 		return nil, err
 	}
