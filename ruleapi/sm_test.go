@@ -14,7 +14,7 @@ import (
 
 func Test_SM(t *testing.T) {
 
-	var sm []model.StateMachineModel
+	var sm []model.StateMachine
 	smStr := common.FileToString("sm.yaml")
 	if smStr == "" {
 		t.FailNow()

@@ -8,7 +8,7 @@ import (
 
 type stateMachineImpl struct {
 	tupleImpl
-	sm           *StateMachineModel
+	sm           *StateMachine
 	started      bool
 	timeoutTimer *time.Timer
 }
@@ -29,7 +29,7 @@ func (s *stateMachineImpl) IsStarted() bool {
 	return s.started
 }
 
-func NewStateMachineTuple(smc StateMachineModel, values map[string]interface{}) (StateMachineTuple, error) {
+func NewStateMachineTuple(smc StateMachine, values map[string]interface{}) (StateMachineTuple, error) {
 	valsNew := map[string]interface{}{}
 	for k, v := range values {
 		valsNew[k] = v
@@ -66,7 +66,7 @@ func (s *stateMachineImpl) GetState() string {
 	return ""
 }
 
-func (s *stateMachineImpl) GetStateMachine() *StateMachineModel {
+func (s *stateMachineImpl) GetStateMachine() *StateMachine {
 	return s.sm
 }
 

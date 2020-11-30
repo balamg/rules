@@ -7,7 +7,7 @@ import (
 	"github.com/project-flogo/core/data"
 )
 
-type StateMachineModel struct {
+type StateMachine struct {
 	Descriptor   TupleDescriptor `json:"state-machine"`
 	InitialState string          `json:"initial-state"`
 	States       []SmState       `json:"states"`
@@ -27,13 +27,14 @@ type SmState struct {
 type SmTransition struct {
 	ToState      string `json:"to-state"`
 	Condition    string `json:"condition"`
+	ChildSm      string `json:"child-sm"`
 	EntryAction  string `json:"entry-action"`
 	ExitAction   string `json:"exit-action"`
 	Timeout      int    `json:"timeout"`
 	TimeoutState string `json:"timeout-state"`
 }
 
-func (s *StateMachineModel) UnmarshalJSON(d []byte) error {
+func (s *StateMachine) UnmarshalJSON(d []byte) error {
 	ser := &struct {
 		Descriptor   TupleDescriptor `json:"state-machine"`
 		InitialState string          `json:"initial-state"`
@@ -85,11 +86,11 @@ func (s *StateMachineModel) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
-func (s *StateMachineModel) GetSmForState(state string) *SmState {
+func (s *StateMachine) GetSmForState(state string) *SmState {
 	return s.stateMap[state]
 }
 
-func RegisterSmTypes(sms []StateMachineModel) error {
+func RegisterSmTypes(sms []StateMachine) error {
 	for i := range sms {
 		smTd := sms[i].Descriptor
 		err := RegisterTupleDescriptorsFromTds([]TupleDescriptor{smTd})

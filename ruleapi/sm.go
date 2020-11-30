@@ -8,7 +8,7 @@ import (
 	"github.com/project-flogo/rules/common/model"
 )
 
-func CreateRulesForSm(sm model.StateMachineModel) ([]model.Rule, error) {
+func CreateRulesForSm(sm model.StateMachine) ([]model.Rule, error) {
 	var rules []model.Rule
 
 	for i := range sm.States {
