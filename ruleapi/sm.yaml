@@ -1,23 +1,50 @@
-- state-machine:
-    name: sm1
-    properties:
-      - name: p1
-        type: string
-  initial-state: s1
-  states:
-    - state: s1
-      entry-action: a1
-      exit-action: a2
-      timeout: 5
-      timeout-state: s2
-#     transitions:
-#       - condition: "true"
-#         to-state: s2
-    - state: s2
-      entry-action: a1
-      exit-action: a2
-      timeout: 2
-      timeout-state: s1
-#     transitions:
-#       - condition: "true"
-#         to-state: e1
+state-machines:
+  - state-machine:
+      name: childsm
+      properties:
+        - name: c1
+          type: string
+    initial-state: cinitial
+    end-state: cend
+    states:
+      - state: cinitial
+        timeout: 10
+        timeout-state: cend
+        transitions:
+          - condition: true
+            start-sm: childsm2
+            to-state: c2
+  - state-machine:
+      name: childsm2
+      properties:
+        - name: c1
+          type: string
+    initial-state: cinitial
+    end-state: cend
+    states:
+      - state: cinitial
+        timeout: 10
+        timeout-state: cend
+        transitions:
+          - condition: true
+            to-state: c2
+
+  - state-machine:
+      name: sm1
+      properties:
+        - name: p1
+          type: string
+    initial-state: s1
+    end-state: e1
+    states:
+      - state: s1
+        timeout: 30
+        timeout-state: e1
+        transitions:
+          - condition: true
+            to-state: s2
+      - state: s2
+        transitions:
+          - condition: true #optional, additional condition if any.
+            start-sm: childsm
+            to-state: e2

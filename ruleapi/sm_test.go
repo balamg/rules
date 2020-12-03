@@ -14,21 +14,21 @@ import (
 
 func Test_SM(t *testing.T) {
 
-	var sm []model.StateMachine
+	var sms model.StateMachines
 	smStr := common.FileToString("sm.yaml")
 	if smStr == "" {
 		t.FailNow()
 	}
-	err := yaml.Unmarshal([]byte(smStr), &sm)
+	err := yaml.Unmarshal([]byte(smStr), &sms)
 	if err != nil {
-		fmt.Printf("%s", err)
+		fmt.Printf("%s\n", err)
 		t.FailNow()
 	}
-	fmt.Printf("%v\n", sm)
+	//fmt.Printf("%v\n", sms)
 
 	//CreateRule(sm)
 
-	err = model.RegisterSmTypes(sm)
+	err = model.RegisterSmTypes(sms.StateMachines)
 	if err != nil {
 		fmt.Printf("%s", err)
 		t.FailNow()
@@ -40,8 +40,8 @@ func Test_SM(t *testing.T) {
 		t.FailNow()
 	}
 
-	for i := range sm {
-		rules, err := CreateRulesForSm(sm[i])
+	for i := range sms.StateMachines {
+		rules, err := CreateRulesForSm(sms.StateMachines[i])
 		if err != nil {
 			fmt.Printf("%s", err)
 			t.FailNow()
@@ -53,13 +53,14 @@ func Test_SM(t *testing.T) {
 				fmt.Printf("%s", err)
 				t.FailNow()
 			}
+			fmt.Printf("added rule: [%s]\n", rules[i].GetName())
 		}
 	}
-	fmt.Printf("%v\n", sm)
+	fmt.Printf("Added rules successfully..\n")
 
 	valMap := map[string]interface{}{"sm_key": "s1"}
 
-	smt, err := model.NewStateMachineTuple(sm[0], valMap)
+	smt, err := model.NewStateMachineTuple(sms.StateMachines[0], valMap)
 	if err != nil {
 		fmt.Printf("%s", err)
 		t.FailNow()

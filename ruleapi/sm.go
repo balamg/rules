@@ -31,8 +31,7 @@ func CreateRulesForState(smName string, sm model.SmState) ([]model.Rule, error) 
 	for i := range sm.Transitions {
 		smTrans := sm.Transitions[i]
 		condition := sm.Transitions[i].Condition
-		ruleName := fmt.Sprintf("%s_%s_%s", sm.State, condition, smTrans.ToState)
-
+		ruleName := fmt.Sprintf("%s_%s_%s_%s", smName, sm.State, condition, smTrans.ToState)
 		rule := NewRule(ruleName)
 		sa := SmActionContext{name: smName, smTrans: &smTrans}
 		rule.SetContext(&sa)
