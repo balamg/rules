@@ -34,9 +34,9 @@ type SmState struct {
 type SmTransition struct {
 	ToState   string `json:"to-state"`
 	Condition string `json:"condition"`
-	ChildSm   string `json:"child-sm"`
-	StartSm   string `json:"start-sm"`
-	ExitSm    string `json:"exit-sm"`
+	//ChildSm   string `json:"child-sm"`
+	StartSm string `json:"start-sm"`
+	//ExitSm    string `json:"exit-sm"`
 }
 
 func (sms *StateMachines) UnmarshalJSON(d []byte) error {
@@ -91,6 +91,10 @@ func (sms *StateMachines) UnmarshalJSON(d []byte) error {
 	}
 
 	return nil
+}
+
+func (sms *StateMachines) GetSm(smName string) *StateMachine {
+	return sms.smMap[smName]
 }
 
 func (s *StateMachine) UnmarshalJSON(d []byte) error {

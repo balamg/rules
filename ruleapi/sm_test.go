@@ -41,7 +41,7 @@ func Test_SM(t *testing.T) {
 	}
 
 	for i := range sms.StateMachines {
-		rules, err := CreateRulesForSm(sms.StateMachines[i])
+		rules, err := CreateRulesForSm(&sms, &sms.StateMachines[i])
 		if err != nil {
 			fmt.Printf("%s", err)
 			t.FailNow()

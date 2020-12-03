@@ -143,7 +143,7 @@ func (nw *reteNetworkImpl) AddRule(rule model.Rule) (err error) {
 
 	//Add NodeLinks
 	nw.ruleNameClassNodeLinksOfRule[rule.GetName()] = classNodeLinksOfRule
-
+	fmt.Print(nw.PrintRule(rule))
 	return nil
 }
 
