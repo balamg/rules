@@ -8,6 +8,29 @@ import (
 	"github.com/project-flogo/rules/common/model"
 )
 
+type ActionCtx struct {
+	sms        *model.StateMachines
+	sm         *model.StateMachine
+	state      *model.SmState
+	transition *model.SmTransition
+}
+
+type StateTimeoutActionCtx struct {
+	ActionCtx
+}
+
+type StateChangeActionCtx struct {
+	ActionCtx
+}
+
+type StartChildSmActionCtx struct {
+	ActionCtx
+}
+
+type ExitChildSmActionCtx struct {
+	ActionCtx
+}
+
 func CreateRulesForSm(sms *model.StateMachines, sm *model.StateMachine) ([]model.Rule, error) {
 	var rules []model.Rule
 
@@ -30,38 +53,49 @@ func CreateRulesForState(sms *model.StateMachines, sm *model.StateMachine, state
 	var rules []model.Rule
 
 	for i := range state.Transitions {
-		transition := &state.Transitions[i]
-		condition := transition.Condition
-		ruleName := fmt.Sprintf("%s_%s_%s_%s", smName, state.State, condition, transition.ToState)
-		rule := NewRule(ruleName)
 
-		currStateCondition := fmt.Sprintf("$.%s.sm_state == '%s'", smName, state.State)
-		err := rule.AddExprCondition(currStateCondition, currStateCondition, &transition)
+		transition := &state.Transitions[i]
+
+		condition := transition.Condition
+		ruleName := fmt.Sprintf("%s_%s_%s_%s", smName, state.State, transition.ToState, condition)
+
+		rule := NewRule(ruleName)
+		err := addDefinedCondition(rule, condition)
 		if err != nil {
-			return rules, err
+			return nil, err
 		}
-		err = rule.AddExprCondition(condition, condition, nil)
+
+		err = addCurrentStateCondition(rule, sm, state)
 		if err != nil {
-			return rules, err
+			return nil, err
 		}
-		err = addParentSmConditions(sms, sm, rule)
+
+		err = addParentSmConditions(rule, sms, sm)
 		if err != nil {
-			return rules, err
+			return nil, err
 		}
 
 		if transition.StartSm == "" {
 			//its a regular state change
-			sa := SmActionContext{name: smName, smTrans: transition}
-			rule.SetAction(sa.setSmTransitionAction)
+			sa := &StateChangeActionCtx{ActionCtx{
+				sms:        sms,
+				state:      state,
+				transition: transition,
+			}}
+			rule.SetAction(sa.stateChangeAction)
 			rules = append(rules, rule)
 		} else {
-			rule, err = defineChildStateStartRule(sms, sm, state, transition)
-			if err != nil {
-				return rules, err
-			}
+			//set action to startsm action
+			startChildSmActionCtx := &StartChildSmActionCtx{ActionCtx{
+				sms:        sms,
+				state:      state,
+				transition: transition,
+			}}
+			rule.SetAction(startChildSmActionCtx.startChildSmAction)
 			rules = append(rules, rule)
 
-			rule, err = defineChildStateExitRule(sms, sm, state, transition)
+			//additional
+			rule, err = defineExitChildSmRule(sms, sm, state, transition)
 			if err != nil {
 				return rules, err
 			}
@@ -70,80 +104,38 @@ func CreateRulesForState(sms *model.StateMachines, sm *model.StateMachine, state
 
 	}
 	if state.Timeout > 0 {
-		timeoutRule, err := setTimeoutRuleForState(smName, state)
+		rule, err := defineStateTimeoutRule(sms, sm, state, nil)
 		if err != nil {
 			return rules, err
 		}
-		err = addParentSmConditions(sms, sm, timeoutRule)
+		err = addParentSmConditions(rule, sms, sm)
 		if err != nil {
 			return rules, err
 		}
-		rules = append(rules, timeoutRule)
+		rules = append(rules, rule)
 	}
 	return rules, nil
 }
-func defineChildStateStartRule(sms *model.StateMachines, sm *model.StateMachine,
-	state *model.SmState, transition *model.SmTransition) (model.MutableRule, error) {
-	ruleName := fmt.Sprintf("%s_%s_%s_enter", sm.Descriptor.Name,
-		state.State, transition.StartSm)
-	rule := NewRule(ruleName)
 
+func addCurrentStateCondition(rule model.MutableRule, sm *model.StateMachine,
+	state *model.SmState) error {
 	currStateCondition := fmt.Sprintf("$.%s.sm_state == '%s'", sm.Descriptor.Name, state.State)
-	err := rule.AddExprCondition(currStateCondition, currStateCondition, &transition)
+	err := rule.AddExprCondition(currStateCondition, currStateCondition, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	//child sm is involved, so create a start rule and an exit rule
-	startChildSmActionCtx := &StartChildSmActionContext{
-		name:    sm.Descriptor.Name,
-		sms:     sms,
-		state:   state,
-		smTrans: transition,
-	}
-	rule.SetAction(startChildSmActionCtx.startChildSmAction)
-
-	return rule, nil
-}
-func defineChildStateExitRule(sms *model.StateMachines, sm *model.StateMachine,
-	state *model.SmState, transition *model.SmTransition) (model.MutableRule, error) {
-	ruleName := fmt.Sprintf("%s_%s_%s_exit", sm.Descriptor.Name,
-		state.State, transition.StartSm)
-	rule := NewRule(ruleName)
-
-	currStateCondition := fmt.Sprintf("$.%s.sm_state == '%s'", sm.Descriptor.Name, state.State)
-	err := rule.AddExprCondition(currStateCondition, currStateCondition, &transition)
-	if err != nil {
-		return nil, err
-	}
-
-	childSm := sms.GetSm(transition.StartSm)
-	childEndStateCondition := fmt.Sprintf("$.%s.sm_state == '%s'",
-		childSm.Descriptor.Name, childSm.EndState)
-	err = rule.AddExprCondition(childEndStateCondition, childEndStateCondition, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	//equal keys rule
-	equalKeysCondition := fmt.Sprintf("$.%s.sm_key == $.%s.sm_key", sm.Descriptor.Name,
-		childSm.Descriptor.Name)
-	err = rule.AddExprCondition(equalKeysCondition, equalKeysCondition, nil)
-	if err != nil {
-		return nil, err
-	}
-	childSmExitCtx := &ChildSmExitActionContext{
-		name:    sm.Descriptor.Name,
-		sms:     sms,
-		state:   state,
-		smTrans: transition,
-	}
-	rule.SetAction(childSmExitCtx.childSmExitAction)
-	return rule, nil
+	return nil
 }
 
-func addParentSmConditions(sms *model.StateMachines, sm *model.StateMachine, rule model.MutableRule) error {
-	//add parent rules
+func addDefinedCondition(rule model.MutableRule, condition string) error {
+	err := rule.AddExprCondition(condition, condition, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func addParentSmConditions(rule model.MutableRule, sms *model.StateMachines, sm *model.StateMachine) error {
 	currentParent := sm.ParentSm
 	currentParentState := sm.ParentState
 
@@ -172,106 +164,106 @@ func addParentSmConditions(sms *model.StateMachines, sm *model.StateMachine, rul
 	return nil
 }
 
-func setTimeoutRuleForState(smName string, state *model.SmState) (model.MutableRule, error) {
-	ruleName := fmt.Sprintf("%s_%s_timeout", smName, state.State)
+func defineExitChildSmRule(sms *model.StateMachines, sm *model.StateMachine,
+	state *model.SmState, transition *model.SmTransition) (model.MutableRule, error) {
+	ruleName := fmt.Sprintf("%s_%s_%s_exit", sm.Descriptor.Name,
+		state.State, transition.StartSm)
 	rule := NewRule(ruleName)
 
-	//$.sm1.sm_state == 's1'
-	currStateCondition := fmt.Sprintf("$.%s.sm_state == '%s'", smName, state.State)
-	err := rule.AddExprCondition(currStateCondition, currStateCondition, nil)
+	err := addCurrentStateCondition(rule, sm, state)
+	if err != nil {
+		return nil, err
+	}
+	childSm := sms.GetSm(transition.StartSm)
+	childEndStateCondition := fmt.Sprintf("$.%s.sm_state == '%s'",
+		childSm.Descriptor.Name, childSm.EndState)
+	err = rule.AddExprCondition(childEndStateCondition, childEndStateCondition, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	//equal keys rule
+	equalKeysCondition := fmt.Sprintf("$.%s.sm_key == $.%s.sm_key", sm.Descriptor.Name,
+		childSm.Descriptor.Name)
+	err = rule.AddExprCondition(equalKeysCondition, equalKeysCondition, nil)
+	if err != nil {
+		return nil, err
+	}
+	exitChildSmActionCtx := &ExitChildSmActionCtx{ActionCtx{
+		sms:        sms,
+		state:      state,
+		transition: transition,
+	}}
+	err = addParentSmConditions(rule, sms, sm)
+	if err != nil {
+		return nil, err
+	}
+	rule.SetAction(exitChildSmActionCtx.exitChildSmAction)
+	return rule, nil
+}
+
+func defineStateTimeoutRule(sms *model.StateMachines, sm *model.StateMachine,
+	state *model.SmState, transition *model.SmTransition) (model.MutableRule, error) {
+
+	ruleName := fmt.Sprintf("%s_%s_timeout", sm.Descriptor.Name, state.State)
+	rule := NewRule(ruleName)
+
+	err := addCurrentStateCondition(rule, sm, state)
 	if err != nil {
 		return nil, err
 	}
 
 	//$.sm1.sm_key == $.timer.ctx
-	matchKeyExpr := fmt.Sprintf("$.%s.sm_key == $.timer.ctx", smName)
+	matchKeyExpr := fmt.Sprintf("$.%s.sm_key == $.timer.ctx", sm.Descriptor.Name)
 	err = rule.AddExprCondition(matchKeyExpr, matchKeyExpr, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	smt := &SmTimeoutActionContext{smName, state}
-	rule.SetAction(smt.TimeoutAction)
+	//$.sm1.sm_key == $.timer.ctx
+	matchTimerRuleName := fmt.Sprintf("$.timer.ruleName == '%s'", ruleName)
+	err = rule.AddExprCondition(matchTimerRuleName, matchTimerRuleName, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	smt := &StateTimeoutActionCtx{ActionCtx{
+		sms:        sms,
+		sm:         sm,
+		state:      state,
+		transition: transition,
+	}}
+	rule.SetAction(smt.stateTimeoutAction)
 	return rule, nil
 }
 
-func (smCtx *SmTimeoutActionContext) TimeoutAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
-	smTuple := tuples[model.TupleType(smCtx.name)]
-	if smTuple == nil {
-		fmt.Printf("sm not found %s", smCtx.name)
-		return
-	}
+func (a *StateTimeoutActionCtx) stateTimeoutAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
+	smName := a.sm.Descriptor.Name
+	smTuple := tuples[model.TupleType(smName)]
+	smt, _ := smTuple.(model.StateMachineTuple)
 
-	smt, ok := smTuple.(model.StateMachineTuple)
-	if !ok {
-		fmt.Printf("%s not of type statemachinetuple", smCtx.name)
-		return
-	}
-
-	fmt.Printf("setting sm[%s] to next state [%s] from state [%s]\n",
-		smt.GetKey().String(), smCtx.sm.TimeoutState, smt.GetState())
-	smt.SetState(ctx, smCtx.sm.TimeoutState)
-	timerEvent := tuples[model.TupleType("timer")]
-	if timerEvent == nil {
-		fmt.Printf("timer event not found\n")
-		return
-	}
-	rs.Delete(ctx, timerEvent)
-
-	_ = startTimeoutForCurrentState(smt, rs)
+	fmt.Printf("state machine [%s]: state [%s] timed out, setting timeout state [%s]\n",
+		smt.GetKey().String(), smt.GetState(), a.state.TimeoutState)
+	smt.SetState(ctx, a.state.TimeoutState)
+	_ = startTimeoutForCurrentState(smt, a.sm, rs)
 }
 
-type SmTimeoutActionContext struct {
-	name string
-	sm   *model.SmState
-}
-type SmActionContext struct {
-	name    string
-	smTrans *model.SmTransition
-}
-type StartChildSmActionContext struct {
-	name    string
-	sms     *model.StateMachines
-	state   *model.SmState
-	smTrans *model.SmTransition
-}
-type ChildSmExitActionContext struct {
-	name    string
-	sms     *model.StateMachines
-	state   *model.SmState
-	smTrans *model.SmTransition
+func (a *StateChangeActionCtx) stateChangeAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
+	smName := a.sm.Descriptor.Name
+	smTuple := tuples[model.TupleType(smName)]
+	smt, _ := smTuple.(model.StateMachineTuple)
+
+	fmt.Printf("state machine [%s]: state [%s] changed to state [%s]\n",
+		smt.GetKey().String(), smt.GetState(), a.transition.ToState)
+	smt.SetState(ctx, a.transition.ToState)
+	_ = startTimeoutForCurrentState(smt, a.sm, rs)
 }
 
-func (smCtx *SmActionContext) setSmTransitionAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
-	//smCtx, ok := ruleCtx.(*SmActionContext)
-	//if !ok {
-	//	fmt.Printf("incorrect rule context type")
-	//	return
-	//}
-
-	smTuple := tuples[model.TupleType(smCtx.name)]
-	if smTuple == nil {
-		fmt.Printf("sm not found %s", smCtx.name)
-		return
-	}
-
-	smt, ok := smTuple.(model.StateMachineTuple)
-	if !ok {
-		fmt.Printf("%s not of type statemachinetuple", smCtx.name)
-		return
-	}
-
-	fmt.Printf("setting sm[%s] to next state [%s] from state [%s]\n",
-		smt.GetKey().String(), smCtx.smTrans.ToState, smt.GetState())
-	smt.SetState(ctx, smCtx.smTrans.ToState)
-	_ = startTimeoutForCurrentState(smt, rs)
-}
-
-func StartSm(ctx context.Context, rs model.RuleSession, s model.StateMachineTuple) error {
+func StartSm(ctx context.Context, rs model.RuleSession, sm *model.StateMachine, s model.StateMachineTuple) error {
 	if s.IsStarted() {
 		return nil
 	}
-	_ = startTimeoutForCurrentState(s, rs)
+	_ = startTimeoutForCurrentState(s, sm, rs)
 
 	err := rs.Assert(ctx, s)
 	if err != nil {
@@ -282,65 +274,47 @@ func StartSm(ctx context.Context, rs model.RuleSession, s model.StateMachineTupl
 }
 
 //to be called right after changing state to nextState
-func startTimeoutForCurrentState(s model.StateMachineTuple, rs model.RuleSession) error {
+func startTimeoutForCurrentState(s model.StateMachineTuple, sm *model.StateMachine,
+	rs model.RuleSession) error {
 	timer := s.GetStateTimeoutTimer()
 	if timer != nil {
 		timer.Stop()
 	}
-	smm := s.GetStateMachine()
-	stt := smm.GetSmForState(s.GetState())
-	if stt == nil {
-		fmt.Printf("state transitions not found for state [%s]\n", s.GetState())
+	currentState := sm.GetSmForState(s.GetState())
+	if currentState == nil {
+		fmt.Printf("WARN: state machine [%s]: state not found [%s]\n",
+			sm.Descriptor.Name, s.GetState())
 		return nil
 	}
-	timeout := stt.Timeout
+	timeout := currentState.Timeout
 	if timeout > 0 {
 		timer = time.NewTimer(time.Duration(timeout) * time.Second)
 		s.SetStateTimeoutTimer(timer)
 
 		go func() {
 			<-timer.C
-			vals := s.GetMap()["sm_key"].(string)
-			assertTimerTuple(rs, vals)
+			smKey := s.GetMap()["sm_key"].(string)
+			ruleName := fmt.Sprintf("%s_%s_timeout", sm.Descriptor.Name, s.GetState())
+			assertTimerTuple(rs, ruleName, smKey)
 		}()
 	}
 	return nil
 }
 
-func assertTimerTuple(rs model.RuleSession, smKey string) {
+func assertTimerTuple(rs model.RuleSession, ruleName string, smKey string) {
 	now := time.Now().UnixNano()
 
 	timer, _ := model.NewTupleWithKeyValues("timer", now)
 	_ = timer.SetString(context.TODO(), "ctx", smKey)
+	_ = timer.SetString(context.TODO(), "ruleName", ruleName)
 
 	_ = rs.Assert(context.TODO(), timer)
 
 }
-func (smCtx *ChildSmExitActionContext) childSmExitAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
+func (a *ExitChildSmActionCtx) exitChildSmAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
 	//todo: change state to next state..
 }
 
-func (smCtx *StartChildSmActionContext) startChildSmAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
-	//smCtx, ok := ruleCtx.(*SmActionContext)
-	//if !ok {
-	//	fmt.Printf("incorrect rule context type")
-	//	return
-	//}
+func (a *StartChildSmActionCtx) startChildSmAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
 
-	smTuple := tuples[model.TupleType(smCtx.name)]
-	if smTuple == nil {
-		fmt.Printf("sm not found %s", smCtx.name)
-		return
-	}
-
-	smt, ok := smTuple.(model.StateMachineTuple)
-	if !ok {
-		fmt.Printf("%s not of type statemachinetuple", smCtx.name)
-		return
-	}
-
-	fmt.Printf("setting sm[%s] to next state [%s] from state [%s]\n",
-		smt.GetKey().String(), smCtx.smTrans.ToState, smt.GetState())
-	smt.SetState(ctx, smCtx.smTrans.ToState)
-	_ = startTimeoutForCurrentState(smt, rs)
 }

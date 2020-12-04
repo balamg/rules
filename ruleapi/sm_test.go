@@ -76,7 +76,7 @@ func Test_SM(t *testing.T) {
 	//	fmt.Printf("%s", err)
 	//	t.FailNow()
 	//}
-	err = StartSm(context.TODO(), rs, smt)
+	err = StartSm(context.TODO(), rs, &sms.StateMachines[0], smt)
 	if err != nil {
 		fmt.Printf("%s", err)
 		t.FailNow()

@@ -184,6 +184,11 @@ func registerTimerType() error {
 				PropType: data.TypeString,
 				KeyIndex: -1,
 			},
+			{
+				Name:     "ruleName",
+				PropType: data.TypeString,
+				KeyIndex: -1,
+			},
 		},
 	}
 	return RegisterTupleDescriptorsFromTds([]TupleDescriptor{td})
