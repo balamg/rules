@@ -29,19 +29,19 @@ func (s *stateMachineImpl) IsStarted() bool {
 	return s.started
 }
 
-func NewStateMachineTuple(smc StateMachine, values map[string]interface{}) (StateMachineTuple, error) {
+func NewStateMachineTuple(sm *StateMachine, values map[string]interface{}) (StateMachineTuple, error) {
 	valsNew := map[string]interface{}{}
 	for k, v := range values {
 		valsNew[k] = v
 	}
-	valsNew["sm_state"] = smc.InitialState
-	tupleImplI, err := NewTuple(TupleType(smc.Descriptor.Name), valsNew)
+	valsNew["sm_state"] = sm.InitialState
+	tupleImplI, err := NewTuple(TupleType(sm.Descriptor.Name), valsNew)
 	if err != nil {
 		return nil, err
 	}
 	ti := tupleImplI.(*tupleImpl)
 	smt := &stateMachineImpl{
-		sm: &smc,
+		sm: sm,
 	}
 	smt.tupleImpl.tuples = ti.tuples
 	smt.tupleImpl.key = ti.GetKey()

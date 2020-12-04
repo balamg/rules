@@ -60,7 +60,7 @@ func Test_SM(t *testing.T) {
 
 	valMap := map[string]interface{}{"sm_key": "s1"}
 
-	smt, err := model.NewStateMachineTuple(sms.StateMachines[0], valMap)
+	smt, err := model.NewStateMachineTuple(&sms.StateMachines[0], valMap)
 	if err != nil {
 		fmt.Printf("%s", err)
 		t.FailNow()
