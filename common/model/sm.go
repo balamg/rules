@@ -11,6 +11,15 @@ type stateMachineImpl struct {
 	sm           *StateMachine
 	started      bool
 	timeoutTimer *time.Timer
+	prevState    string
+}
+
+func (s *stateMachineImpl) GetPreviousState() string {
+	return s.prevState
+}
+
+func (s *stateMachineImpl) SetPreviousState(state string) {
+	s.prevState = state
 }
 
 func (s *stateMachineImpl) GetStateTimeoutTimer() *time.Timer {

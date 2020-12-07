@@ -31,12 +31,48 @@ type ExitChildSmActionCtx struct {
 	ActionCtx
 }
 
+type StateEntryActionCtx struct {
+	ActionCtx
+}
+
+func (a *StateEntryActionCtx) stateEntryAction(ctx context.Context, session model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
+	smName := a.sm.Descriptor.Name
+	smTuple := tuples[model.TupleType(smName)]
+	smt, _ := smTuple.(model.StateMachineTuple)
+
+	prevState := smt.GetPreviousState()
+	currentState := smt.GetState()
+
+	entryFn := model.GetSmEntryFunction(a.state.EntryAction)
+	if entryFn != nil {
+		entryFn(ctx, session, ruleName, prevState, currentState, tuples, nil)
+	} else {
+		a.defaultSmEntryFn(ctx, session, ruleName, prevState, currentState, tuples, a)
+	}
+}
+
+func (a *StateEntryActionCtx) defaultSmEntryFn(ctx context.Context, rs model.RuleSession, ruleName string,
+	prevState string, currentState string,
+	tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
+	smName := a.sm.Descriptor.Name
+	smTuple := tuples[model.TupleType(smName)]
+	smt, _ := smTuple.(model.StateMachineTuple)
+
+	fmt.Printf("state entry rule fired [%s], from: [%s], to: [%s]\n", smt.GetKey().String(),
+		prevState, currentState)
+}
+
 func CreateRulesForSm(sms *model.StateMachines, sm *model.StateMachine) ([]model.Rule, error) {
 	var rules []model.Rule
 
 	for i := range sm.States {
 		state := &sm.States[i]
-		rls, err := CreateRulesForState(sms, sm, state)
+		rule, err := CreateStateEntryRulesForState(sms, sm, state)
+		if err != nil {
+			return nil, err
+		}
+		rules = append(rules, rule)
+		rls, err := CreateTransitionRulesForState(sms, sm, state)
 		if err != nil {
 			return nil, err
 		}
@@ -48,7 +84,7 @@ func CreateRulesForSm(sms *model.StateMachines, sm *model.StateMachine) ([]model
 	return rules, nil
 }
 
-func CreateRulesForState(sms *model.StateMachines, sm *model.StateMachine, state *model.SmState) ([]model.Rule, error) {
+func CreateTransitionRulesForState(sms *model.StateMachines, sm *model.StateMachine, state *model.SmState) ([]model.Rule, error) {
 	smName := sm.Descriptor.Name
 	var rules []model.Rule
 
@@ -84,6 +120,7 @@ func CreateRulesForState(sms *model.StateMachines, sm *model.StateMachine, state
 				transition: transition,
 			}}
 			rule.SetAction(sa.stateChangeAction)
+			rule.SetPriority(2)
 			rules = append(rules, rule)
 		} else {
 			//set action to startsm action
@@ -117,6 +154,34 @@ func CreateRulesForState(sms *model.StateMachines, sm *model.StateMachine, state
 		rules = append(rules, rule)
 	}
 	return rules, nil
+}
+
+func CreateStateEntryRulesForState(sms *model.StateMachines, sm *model.StateMachine, state *model.SmState) (model.Rule, error) {
+	smName := sm.Descriptor.Name
+	ruleName := fmt.Sprintf("%s_%s_entry_rule", smName, state.State)
+
+	rule := NewRule(ruleName)
+
+	err := addCurrentStateCondition(rule, sm, state)
+	if err != nil {
+		return nil, err
+	}
+
+	err = addParentSmConditions(rule, sms, sm)
+	if err != nil {
+		return nil, err
+	}
+
+	stateEntryCtx := &StateEntryActionCtx{ActionCtx{
+		sms:        sms,
+		sm:         sm,
+		state:      state,
+		transition: nil,
+	}}
+	rule.SetAction(stateEntryCtx.stateEntryAction)
+	rule.SetPriority(-1) //highest, before transition happens
+
+	return rule, nil
 }
 
 func addCurrentStateCondition(rule model.MutableRule, sm *model.StateMachine,
@@ -247,7 +312,10 @@ func (a *StateChangeActionCtx) stateChangeAction(ctx context.Context, rs model.R
 
 	fmt.Printf("state machine [%s]: state [%s] changed to state [%s]\n",
 		smt.GetKey().String(), smt.GetState(), a.transition.ToState)
+	smt.SetPreviousState(smt.GetState())
+
 	smt.SetState(ctx, a.transition.ToState)
+
 	_ = startTimeoutForCurrentState(smt, a.sm, rs)
 }
 
@@ -258,6 +326,7 @@ func (a *StateTimeoutActionCtx) stateTimeoutAction(ctx context.Context, rs model
 
 	fmt.Printf("state machine [%s]: state [%s] timed out, setting timeout state [%s]\n",
 		smt.GetKey().String(), smt.GetState(), a.state.TimeoutState)
+	smt.SetPreviousState(smt.GetState())
 	smt.SetState(ctx, a.state.TimeoutState)
 	_ = startTimeoutForCurrentState(smt, a.sm, rs)
 }
@@ -319,8 +388,9 @@ func (a *ExitChildSmActionCtx) exitChildSmAction(ctx context.Context, rs model.R
 	smTuple := tuples[model.TupleType(smName)]
 	smt, _ := smTuple.(model.StateMachineTuple)
 
-	fmt.Printf("exit child state machine [%s]: state [%s] changed to state [%s]\n",
+	fmt.Printf("exit child state machine rule fired [%s]: state [%s] changed to state [%s]\n",
 		smt.GetKey().String(), smt.GetState(), a.transition.ToState)
+	smt.SetPreviousState(smt.GetState())
 	smt.SetState(ctx, a.transition.ToState)
 	_ = startTimeoutForCurrentState(smt, a.sm, rs)
 }
@@ -335,13 +405,17 @@ func (a *StartChildSmActionCtx) startChildSmAction(ctx context.Context, rs model
 	valMap := map[string]interface{}{"sm_key": smKey}
 	childSm := a.sms.GetSm(a.transition.StartSm)
 
-	smt, err := model.NewStateMachineTuple(childSm, valMap)
+	childSmTuple, err := model.NewStateMachineTuple(childSm, valMap)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 	}
 
-	err = StartSm(ctx, rs, childSm, smt)
+	err = StartSm(ctx, rs, childSm, childSmTuple)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 	}
+
+	fmt.Printf("start child state machine rule fired [%s]: state [%s] started state machine [%s]\n",
+		smt.GetKey().String(), smt.GetState(), a.transition.StartSm)
+
 }

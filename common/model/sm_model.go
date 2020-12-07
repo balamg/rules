@@ -68,7 +68,7 @@ func (sms *StateMachines) UnmarshalJSON(d []byte) error {
 		sm := &sms.StateMachines[i]
 
 		for j := range sm.States {
-			state := sm.States[j]
+			state := &sm.States[j]
 			for k := range state.Transitions {
 				transition := &state.Transitions[k]
 				if transition.StartSm != "" {
@@ -86,11 +86,32 @@ func (sms *StateMachines) UnmarshalJSON(d []byte) error {
 					childSm.ParentSm = sm.Descriptor.Name
 					childSm.ParentState = state.State
 				}
+				sms.addStateEntryForState(sm, transition.ToState)
 			}
+			sms.addStateEntryForState(sm, state.TimeoutState)
 		}
+		sms.addStateEntryForState(sm, sm.EndState)
+
 	}
 
 	return nil
+}
+
+func (sms *StateMachines) addStateEntryForState(sm *StateMachine, stateName string) {
+	stateEntry := sm.stateMap[stateName]
+	if stateEntry == nil {
+		//add a default
+		stateEntry1 := SmState{
+			State:        stateName,
+			EntryAction:  "",
+			ExitAction:   "",
+			Timeout:      -1,
+			TimeoutState: "",
+			Transitions:  []SmTransition{},
+		}
+		sm.States = append(sm.States, stateEntry1)
+		sm.stateMap[stateName] = &stateEntry1
+	}
 }
 
 func (sms *StateMachines) GetSm(smName string) *StateMachine {
